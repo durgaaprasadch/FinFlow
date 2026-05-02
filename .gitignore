@@ -16,5 +16,6 @@ finflow_backend-main/**/*.class
 .idea/
 **/.sonarlint/
 *.log
+*.zip
 .DS_Store
 Thumbs.db
