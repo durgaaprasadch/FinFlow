@@ -1,0 +1,115 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  config:
+    import: "optional:configserver:http://localhost:8889"
+
+  cloud:
+    gateway:
+      default-filters:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+              - "http://localhost:5174"
+              - "http://127.0.0.1:5173"
+              - "http://127.0.0.1:5174"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+      observability:
+        enabled: false
+
+      routes:
+        - id: notification-service
+          uri: lb://notification-service
+          order: 1
+          predicates:
+            - Path=/api/notifications, /api/notifications/**
+          filters:
+            - AuthenticationFilter
+
+        - id: auth-service-public
+          uri: lb://auth-service
+          order: 2
+          predicates:
+            - Path=/api/auth/signup/**, /api/auth/login/**
+
+        - id: auth-service
+          uri: lb://auth-service
+          order: 3
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - AuthenticationFilter
+
+        - id: auth-service-general
+          uri: lb://auth-service
+          order: 3
+          predicates:
+            - Path=/auth/**
+          filters:
+            - AuthenticationFilter
+
+        - id: application-service
+          uri: lb://application-service
+          order: 4
+          predicates:
+            - Path=/api/applications/**
+          filters:
+            - AuthenticationFilter
+
+        - id: metadata-service
+          uri: lb://application-service
+          order: 4
+          predicates:
+            - Path=/api/meta/**
+          filters:
+            - AuthenticationFilter
+
+        - id: admin-service
+          uri: lb://admin-service
+          order: 5
+          predicates:
+            - Path=/api/admin/**
+          filters:
+            - AuthenticationFilter
+
+        - id: document-service
+          uri: lb://document-service
+          order: 6
+          predicates:
+            - Path=/api/documents/**, /api/documents/**
+          filters:
+            - AuthenticationFilter
+
+
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    urls:
+      - name: auth-service
+        url: /api/auth/v3/api-docs
+      - name: application-service
+        url: /api/applications/v3/api-docs
+      - name: admin-service
+        url: /api/admin/v3/api-docs
+      - name: document-service
+        url: /api/documents/v3/api-docs

@@ -1,0 +1,17 @@
+package com.finflow.admin.dto;
+
+public enum LoanStatus {
+    DRAFT,
+    PERSONAL_DETAILS_ADDED,
+    EMPLOYMENT_DETAILS_ADDED,
+    LOAN_DETAILS_ADDED,
+    DOCUMENTS_COMPLETED,
+    SUBMITTED,
+    DOCS_PENDING,
+    DOCS_VERIFIED,
+    UNDER_REVIEW,
+    REUPLOAD,
+    DOCS_REUPLOADED,
+    APPROVED,
+    REJECTED
+}

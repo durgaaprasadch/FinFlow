@@ -1,0 +1,118 @@
+.notifications-page-premium {
+  padding: 10px;
+}
+
+.filter-card-premium {
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.premium-select {
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.premium-select option {
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+}
+
+.notifications-stack-premium {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.notification-item-premium {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.notification-item-premium.priority {
+  border-left: 3px solid var(--color-primary);
+  background: rgba(56, 189, 248, 0.05);
+}
+
+.notif-icon-box-premium {
+  width: 44px;
+  height: 44px;
+  background: var(--color-bg-disabled);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notif-content-premium {
+  flex: 1;
+}
+
+.notif-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.notif-title-premium {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.notif-time-premium {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.notif-text-premium {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  max-width: 800px;
+}
+
+.notif-actions-premium {
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.notification-item-premium:hover .notif-actions-premium {
+  opacity: 1;
+}
+
+.priority-indicator {
+  position: absolute;
+  top: 1.5rem;
+  right: 0.5rem;
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--color-primary);
+}
+
+@media (max-width: 768px) {
+  .notif-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}

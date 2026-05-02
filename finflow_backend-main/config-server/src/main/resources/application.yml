@@ -1,0 +1,28 @@
+server:
+  port: 8889
+
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: native
+  cloud:
+    config:
+      enabled: false  # Prevent self-reference
+      server:
+        native:
+          search-locations: classpath:/config/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  tracing:
+    enabled: false
+  zipkin:
+    tracing:
+      enabled: false

@@ -1,0 +1,19 @@
+# Frontend dependencies
+finflow-frontend/node_modules/
+finflow-frontend/dist/
+finflow-frontend/.env
+
+# Backend dependencies
+finflow_backend-main/**/target/
+finflow_backend-main/**/.mvn/
+finflow_backend-main/**/mvnw
+finflow_backend-main/**/mvnw.cmd
+finflow_backend-main/**/.idea/
+finflow_backend-main/**/*.class
+
+# IDE and System files
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db

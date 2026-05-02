@@ -1,0 +1,65 @@
+spring:
+  cache:
+    type: simple
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: bunjurk@gmail.com
+    password: xtjfmgcagtydessa
+    from: ${SPRING_MAIL_FROM:Finflow Alerts <bunjurk@gmail.com>}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: 5672
+    notification:
+      queues:
+        registration: registration-queue
+        loan-status: loan-status-queue
+        login: login-queue
+      exchanges:
+        notification: notification-exchange
+      routing-keys:
+        registration: notification.registration
+        loan-status: notification.loan-status
+        login: notification.login
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: 6379
+  cloud:
+    gateway:
+      observability:
+        enabled: true
+
+eureka:
+  instance:
+    hostname: localhost
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: "http://${ZIPKIN_HOST:localhost}:9411/api/v2/spans"
+  loki:
+    url: "http://${LOKI_HOST:localhost}:3100/loki/api/v1/push"
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

@@ -1,0 +1,28 @@
+.auth-layout-container {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-layout-container::before {
+  content: '';
+  position: absolute;
+  width: 150%;
+  height: 150%;
+  background: radial-gradient(circle at 20% 20%, var(--color-primary), transparent 40%),
+              radial-gradient(circle at 80% 80%, var(--color-secondary), transparent 40%);
+  opacity: 0.05;
+  z-index: 0;
+}
+
+.auth-layout-box {
+  width: 100%;
+  max-width: 440px;
+  position: relative;
+  z-index: 10;
+}

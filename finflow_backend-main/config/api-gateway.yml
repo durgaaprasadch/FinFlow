@@ -1,0 +1,53 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - AuthenticationFilter
+
+        - id: application-service
+          uri: lb://application-service
+          predicates:
+            - Path=/api/applications/**
+          filters:
+            - AuthenticationFilter
+
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/admin/**
+          filters:
+            - AuthenticationFilter
+
+        - id: document-service
+          uri: lb://document-service
+          predicates:
+            - Path=/api/documents/**
+          filters:
+            - AuthenticationFilter
+
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    urls:
+      - name: auth-service
+        url: /api/auth/v3/api-docs
+      - name: application-service
+        url: /api/applications/v3/api-docs
+      - name: admin-service
+        url: /api/admin/v3/api-docs
+      - name: document-service
+        url: /api/documents/v3/api-docs

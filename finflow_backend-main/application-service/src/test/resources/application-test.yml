@@ -1,0 +1,27 @@
+﻿spring:
+  datasource:
+    url: jdbc:h2:mem:appdb;DB_CLOSE_DELAY=-1;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  cloud:
+    config:
+      enabled: false
+  rabbitmq:
+    notification:
+      exchanges:
+        notification: test.notification.exchange
+      routing-keys:
+        loan-status: test.notification.loan-status
+eureka:
+  client:
+    enabled: false
+
+rabbitmq:
+  exchange: test.exchange
+  routing:
+    key:
+      submitted: test.submitted
