@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { adminService, applicationService } from '../api';
 import { formatDate, formatMoney, labelize, statusTone, unwrap, formatError } from '../utils/format';
 import ApplicationTimeline from '../Components/ApplicationTimeline';
+import AdminAnalytics from '../Components/AdminAnalytics';
 import './AdminDashboard.css';
 
 /**
@@ -130,7 +131,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchData = () => {
       if (activeTab === 'users') void loadUsers();
-      else if (['dashboard', 'applications'].includes(activeTab)) void loadApps();
+      // analytics and fraud-detection also need the apps list
+      else if (['dashboard', 'applications', 'analytics'].includes(activeTab)) void loadApps();
     };
     
     fetchData();
@@ -220,7 +222,25 @@ const AdminDashboard = () => {
     }
   };
 
-  if (['fraud-detection', 'analytics', 'settings', 'notifications'].includes(activeTab)) {
+  if (activeTab === 'analytics') {
+    return (
+      <div className="ad-root">
+        <header className="ad-hero">
+          <div className="ad-hero-text">
+            <span className="ad-kicker">Advanced Analytics</span>
+            <h1 className="ad-title">Performance Metrics</h1>
+            <p className="ad-subtitle">Real-time visualization of loan origination and portfolio health.</p>
+          </div>
+        </header>
+        <div style={{ marginTop: '24px' }}>
+          <AdminAnalytics apps={apps} />
+        </div>
+      </div>
+    );
+  }
+
+
+  if (['settings', 'notifications'].includes(activeTab)) {
     return <AdminPlaceholder tab={activeTab} />;
   }
 
@@ -232,7 +252,7 @@ const AdminDashboard = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <span className="ad-kicker">Operational Workspace</span>
+          <span className="ad-kicker">OPERATIONAL WORKSPACE</span>
           <h1 className="ad-title">
             {activeTab === 'users' ? 'User Identity Control' : activeTab === 'dashboard' ? 'Executive Overview' : 'Underwriting Queue'}
           </h1>
@@ -260,124 +280,132 @@ const AdminDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
         >
           <div className="ad-kpi-grid">
-            <KPI cardClass="kpi-blue" label="Incoming" value={apps.filter(a => a.status === 'SUBMITTED').length} icon={ShieldCheck} footer="Verification Pending" />
-            <KPI cardClass="kpi-amber" label="In Progress" value={apps.filter(a => ['DOCS_VERIFIED', 'REVIEW'].includes(a.status)).length} icon={Clock} footer="Under Review" />
-            <KPI cardClass="kpi-green" label="Finalized" value={apps.filter(a => a.status === 'APPROVED').length} icon={CheckCircle2} footer="Approvals Issued" />
-            <KPI cardClass="kpi-red" label="Declined" value={apps.filter(a => a.status === 'REJECTED').length} icon={ShieldAlert} footer="Policy Rejections" />
+            <KPI cardClass="kpi-blue" label="INCOMING" value={apps.filter(a => a.status === 'SUBMITTED').length} icon={ShieldCheck} footer="Verification Pending" />
+            <KPI cardClass="kpi-amber" label="IN PROGRESS" value={apps.filter(a => ['DOCS_VERIFIED', 'REVIEW'].includes(a.status)).length} icon={Clock} footer="Under Review" />
+            <KPI cardClass="kpi-purple" label="ACTION REQ" value={apps.filter(a => a.status === 'REUPLOAD').length} icon={Activity} footer="Re-upload Required" />
+            <KPI cardClass="kpi-green" label="FINALIZED" value={apps.filter(a => a.status === 'APPROVED').length} icon={CheckCircle2} footer="Approvals Issued" />
+            <KPI cardClass="kpi-red" label="DECLINED" value={apps.filter(a => a.status === 'REJECTED').length} icon={ShieldAlert} footer="Policy Rejections" />
           </div>
 
-          <div className="ad-layout" style={{ marginTop: '28px' }}>
-            <div className="ad-main-col">
-              <section className="ad-panel">
-                <div className="ad-panel-head">
-                  <div>
-                    <h2>Priority Action Feed</h2>
-                    <p>Applications awaiting manual underwriting intervention.</p>
-                  </div>
-                  <button className="ad-btn ad-btn-ghost" onClick={() => navigate('/admin/applications')}>
-                    Review All <ChevronRight size={14} />
-                  </button>
-                </div>
-                <div className="ad-panel-body no-pad">
-                  <div className="ad-feed">
-                    <AnimatePresence mode="popLayout">
-                      {apps.filter(a => a.status === 'SUBMITTED' || a.status === 'DOCS_VERIFIED').length > 0 ? (
-                        apps.filter(a => a.status === 'SUBMITTED' || a.status === 'DOCS_VERIFIED').slice(0, 5).map((app, idx) => (
-                          <motion.div 
-                            key={app.id || app.applicationId || app.applicantUsername} 
-                            className="ad-feed-item" 
-                            onClick={() => handleReview(app)}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                          >
-                            <div className="ad-avatar">{app.fullName?.charAt(0) || 'A'}</div>
-                            <div className="ad-feed-info">
-                              <div className="ad-feed-name">{app.fullName || 'Anonymous Applicant'}</div>
-                              <div className="ad-feed-sub">{labelize(app.loanType)} • {formatMoney(app.loanAmount || app.requestedAmount)}</div>
-                            </div>
-                            <div className="ad-feed-right">
-                              <span className={`ad-badge ${app.status.toLowerCase()}`}>{statusLabel(app.status)}</span>
-                              <span className="ad-feed-time">{formatDate(app.submittedAt || app.updatedAt)}</span>
-                            </div>
-                          </motion.div>
-                        ))
-                      ) : (
-                        <div className="ad-empty">
-                          <Activity size={32} style={{ opacity: 0.2, marginBottom: '12px' }} />
-                          <p>Operational workload is currently clear.</p>
-                        </div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              </section>
+          <div className="ad-feed-section" style={{ marginTop: '48px' }}>
+            <div className="ad-feed-header">
+              <h3 style={{ fontSize: '18px', fontWeight: 600 }}>Priority Action Feed</h3>
+              <button className="ad-btn-text" onClick={() => navigate('/admin/applications')}>
+                Review All <ChevronRight size={14} />
+              </button>
             </div>
-
-
-
-            <aside className="ad-sidebar">
-              <section className="ad-panel">
-                <div className="ad-panel-head"><h2>Quick Navigation</h2></div>
-                <div className="ad-panel-body no-pad">
-                  <div className="ad-qa-list">
-                    <button className="ad-feed-item ad-btn-wide" style={{ border: 'none' }} onClick={() => navigate('/admin/applications')}>
-                      <FileText size={16} color="var(--blue)" />
-                      <div className="ad-feed-info" style={{ textAlign: 'left', marginLeft: '12px' }}>
-                        <div className="ad-feed-name">Loan Archive</div>
-                        <div className="ad-feed-sub">Access full history</div>
+            
+            <div className="ad-feed-container">
+              <AnimatePresence mode="popLayout">
+                {apps.filter(a => a.status === 'SUBMITTED' || a.status === 'DOCS_VERIFIED').length > 0 ? (
+                  apps.filter(a => a.status === 'SUBMITTED' || a.status === 'DOCS_VERIFIED').slice(0, 5).map((app, idx) => (
+                    <motion.div 
+                      key={app.id || app.applicationId || app.applicantUsername} 
+                      className="ad-feed-item-new" 
+                      onClick={() => handleReview(app)}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                    >
+                      <div className="ad-feed-item-left">
+                        <div className="ad-avatar-new">{app.fullName?.charAt(0) || 'A'}</div>
+                        <div>
+                          <div className="ad-feed-name-new">{app.fullName || 'Anonymous Applicant'}</div>
+                          <div className="ad-feed-sub-new">{labelize(app.loanType)} • {formatMoney(app.loanAmount || app.requestedAmount)}</div>
+                        </div>
                       </div>
-                    </button>
-                    <button className="ad-feed-item ad-btn-wide" style={{ border: 'none' }} onClick={() => navigate('/admin/users')}>
-                      <Users size={16} color="var(--violet)" />
-                      <div className="ad-feed-info" style={{ textAlign: 'left', marginLeft: '12px' }}>
-                        <div className="ad-feed-name">Identity Control</div>
-                        <div className="ad-feed-sub">Manage roles</div>
+                      <div className="ad-feed-item-right">
+                        <span className={`ad-badge ${app.status.toLowerCase()}`}>{statusLabel(app.status)}</span>
+                        <span className="ad-feed-time-new">{formatDate(app.submittedAt || app.updatedAt)}</span>
                       </div>
-                    </button>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="ad-empty-dashed">
+                    <CheckCircle2 className="text-emerald" size={48} style={{ marginBottom: '16px' }} />
+                    <p style={{ color: 'var(--muted)', fontSize: '16px' }}>Operational workload is currently clear.</p>
+                    <p style={{ color: 'var(--faint)', fontSize: '14px', marginTop: '8px' }}>No applications require manual underwriting intervention right now.</p>
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          <div className="ad-quick-nav-section" style={{ marginTop: '48px' }}>
+            <div className="ad-quick-nav-grid">
+              <div className="ad-quick-nav-card" onClick={() => navigate('/admin/applications')}>
+                <div className="ad-quick-nav-inner">
+                  <Archive className="icon-blue" size={28} />
+                  <div>
+                    <p className="ad-quick-nav-title">Loan Archive</p>
+                    <p className="ad-quick-nav-desc">Access full history</p>
                   </div>
                 </div>
-              </section>
-            </aside>
+                <ChevronRight size={16} color="var(--muted)" />
+              </div>
+              
+              <div className="ad-quick-nav-card" onClick={() => navigate('/admin/users')}>
+                <div className="ad-quick-nav-inner">
+                  <Users className="icon-purple" size={28} />
+                  <div>
+                    <p className="ad-quick-nav-title">Identity Control</p>
+                    <p className="ad-quick-nav-desc">Manage roles & permissions</p>
+                  </div>
+                </div>
+                <ChevronRight size={16} color="var(--muted)" />
+              </div>
+              
+              <div className="ad-quick-nav-card" onClick={() => navigate('/admin/analytics')}>
+                <div className="ad-quick-nav-inner">
+                  <BarChart3 className="icon-emerald" size={28} />
+                  <div>
+                    <p className="ad-quick-nav-title">Analytics</p>
+                    <p className="ad-quick-nav-desc">Deep dive into metrics</p>
+                  </div>
+                </div>
+                <ChevronRight size={16} color="var(--muted)" />
+              </div>
+            </div>
           </div>
         </motion.div>
       )}
 
       {activeTab !== 'dashboard' && (
         <motion.section 
-          className="ad-panel"
+          className="table-wrap"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <div className="ad-toolbar">
-            <div style={{ flex: 1 }}>
+            <div className="ad-toolbar-left">
               <h2>{activeTab === 'users' ? 'Platform User Directory' : 'Application Master Queue'}</h2>
-              <p className="ad-subtitle">Search, filter, and audit all system records.</p>
             </div>
-            <div className="ad-search-wrap">
-              <Search size={16} />
-              <input className="ad-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Filter by name, email, or identity..." />
+            <div className="ad-toolbar-right">
+              <div className="ad-search-wrap">
+                <Search size={16} />
+                <input className="ad-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Filter by name, email, or identity..." />
+              </div>
+              {activeTab === 'users' ? (
+                <select className="ad-select" value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}>
+                  <option value="all">All Roles</option>
+                  <option value="ADMIN">Admins</option>
+                  <option value="APPLICANT">Applicants</option>
+                </select>
+              ) : (
+                <select className="ad-select" value={status} onChange={(event) => setStatus(event.target.value)}>
+                  <option value="all">All States</option>
+                  <option value="SUBMITTED">Submitted</option>
+                  <option value="DOCS_VERIFIED">Docs Verified</option>
+                  <option value="REVIEW">Under Review</option>
+                  <option value="APPROVED">Approved</option>
+                  <option value="REJECTED">Rejected</option>
+                  <option value="REUPLOAD">Action Required</option>
+                </select>
+              )}
             </div>
-            {activeTab === 'users' ? (
-              <select className="ad-select" value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}>
-                <option value="all">All Roles</option>
-                <option value="ADMIN">Admins</option>
-                <option value="APPLICANT">Applicants</option>
-              </select>
-            ) : (
-              <select className="ad-select" value={status} onChange={(event) => setStatus(event.target.value)}>
-                <option value="all">All States</option>
-                <option value="SUBMITTED">Submitted</option>
-                <option value="DOCS_VERIFIED">Docs Verified</option>
-                <option value="REVIEW">Under Review</option>
-                <option value="APPROVED">Approved</option>
-                <option value="REJECTED">Rejected</option>
-                <option value="REUPLOAD">Action Required</option>
-              </select>
-            )}
           </div>
 
-          <div className="ad-panel-body no-pad table-wrap">
+          <div className="ad-panel-body no-pad">
             {activeTab === 'users' ? (
               <UsersTable users={filteredUsers} promote={promote} demote={demote} setHold={setHold} loading={loading} />
             ) : (
@@ -537,13 +565,17 @@ const AdminDashboard = () => {
 /* ── Sub-Components ────────────────────────────────────────── */
 
 const KPI = ({ cardClass, label, value, icon: Icon, footer }) => (
-  <article className={`ad-kpi ${cardClass}`}>
-    <div className="ad-kpi-header">
-      <span className="ad-kpi-label">{label}</span>
-      <div className="ad-kpi-icon"><Icon size={20} /></div>
+  <article className={`ad-metric-card ${cardClass}`}>
+    <div className="ad-metric-inner">
+      <div>
+        <p className="ad-metric-label">{label}</p>
+        <p className="ad-metric-value">{value}</p>
+        <p className="ad-metric-footer">{footer}</p>
+      </div>
+      <div className="ad-metric-icon-wrap">
+        <Icon size={48} strokeWidth={2} />
+      </div>
     </div>
-    <div className="ad-kpi-value">{value}</div>
-    <div className="ad-kpi-footer">{footer}</div>
   </article>
 );
 
@@ -577,23 +609,28 @@ const ApplicationsTable = ({ apps, open, downloadDocs }) => (
       {apps.map((app) => (
         <tr key={app.id || app.applicationId || app.applicantUsername}>
           <td>
-            <span className="ad-cell-name">{app.fullName || 'Identity Pending'}</span>
-            <span className="ad-cell-sub">{app.applicantUsername}</span>
+            <span className="ad-cell-name">{app.applicantUsername}</span>
+            <span className="ad-cell-sub">{app.fullName || 'Identity Pending'}</span>
           </td>
-          <td><span style={{ fontWeight: 600 }}>{app.loanType ? app.loanType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A'}</span></td>
-          <td><strong style={{ color: 'var(--ink)' }}>{formatMoney(app.requestedAmount || app.loanAmount)}</strong></td>
+          <td style={{ fontWeight: 500 }}>{app.loanType ? app.loanType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A'}</td>
+          <td style={{ fontWeight: 600 }}>{formatMoney(app.requestedAmount || app.loanAmount)}</td>
           <td><span className={`ad-badge ${app.status.toLowerCase()}`}>{statusLabel(app.status)}</span></td>
-          <td><span style={{ color: 'var(--muted)', fontSize: '12px' }}>{formatDate(app.submittedAt || app.updatedAt)}</span></td>
+          <td style={{ color: 'var(--muted)' }}>{formatDate(app.submittedAt || app.updatedAt)}</td>
           <td style={{ textAlign: 'right' }}>
             <div className="ad-table-actions" style={{ justifyContent: 'flex-end' }}>
-              <button className="ad-btn ad-btn-ghost" onClick={() => downloadDocs(app.applicantUsername)} title="Download Docs">
-                <Download size={14} />
+              <button 
+                onClick={() => downloadDocs(app.applicantUsername)} 
+                title="Download Docs"
+                style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: '8px 16px' }}
+              >
+                <Download size={16} />
               </button>
-              {['APPROVED', 'REJECTED'].includes(app.status) ? (
-                <button className="ad-btn ad-btn-secondary" onClick={() => open(app)}>View</button>
-              ) : (
-                <button className="ad-btn ad-btn-primary" onClick={() => open(app)}>Review</button>
-              )}
+              <button 
+                onClick={() => open(app)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--info)', fontWeight: 500, cursor: 'pointer', padding: '8px 16px', fontSize: '14px' }}
+              >
+                {['APPROVED', 'REJECTED'].includes(app.status) ? 'View' : 'Review'}
+              </button>
             </div>
           </td>
         </tr>
@@ -617,8 +654,8 @@ const UsersTable = ({ users, promote, demote, setHold, loading }) => (
       {users.map((user) => (
         <tr key={user.id || user.email}>
           <td>
-            <span className="ad-cell-name">{user.fullName || 'Unverified User'}</span>
-            <span className="ad-cell-sub">{user.email}</span>
+            <span className="ad-cell-name">{user.email}</span>
+            <span className="ad-cell-sub">{user.fullName || 'Unverified User'}</span>
           </td>
           <td>
             <span className={`ad-role-badge ${user.role.toLowerCase()}`}>
@@ -631,21 +668,37 @@ const UsersTable = ({ users, promote, demote, setHold, loading }) => (
               {user.email !== 'durgaprasadch.in@gmail.com' && (
                 <>
                   {user.role !== 'ADMIN' ? (
-                    <button className="ad-btn ad-btn-primary" onClick={() => promote(user.email)} disabled={loading}>
-                      <Zap size={14} style={{ marginRight: '6px' }} /> Promote
+                    <button 
+                      onClick={() => promote(user.email)} 
+                      disabled={loading}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--info)', fontWeight: 500, cursor: 'pointer', padding: '8px 16px', fontSize: '14px' }}
+                    >
+                      Promote
                     </button>
                   ) : (
-                    <button className="ad-btn ad-btn-secondary" onClick={() => demote(user.email)} disabled={loading}>
-                      <ShieldCheck size={14} style={{ marginRight: '6px' }} /> Demote
+                    <button 
+                      onClick={() => demote(user.email)} 
+                      disabled={loading}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--error)', fontWeight: 500, cursor: 'pointer', padding: '8px 16px', fontSize: '14px' }}
+                    >
+                      Demote
                     </button>
                   )}
                   {user.status !== 'ON_HOLD' ? (
-                    <button className="ad-btn ad-btn-ghost" onClick={() => setHold(user.id, 'ON_HOLD')} disabled={loading}>
-                      <Clock size={14} style={{ marginRight: '6px' }} /> Hold
+                    <button 
+                      onClick={() => setHold(user.id, 'ON_HOLD')} 
+                      disabled={loading}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--muted)', fontWeight: 500, cursor: 'pointer', padding: '8px 16px', fontSize: '14px' }}
+                    >
+                      Hold
                     </button>
                   ) : (
-                    <button className="ad-btn ad-btn-success" onClick={() => setHold(user.id, 'ACTIVE')} disabled={loading}>
-                      <CheckCircle2 size={14} style={{ marginRight: '6px' }} /> Active
+                    <button 
+                      onClick={() => setHold(user.id, 'ACTIVE')} 
+                      disabled={loading}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--success)', fontWeight: 500, cursor: 'pointer', padding: '8px 16px', fontSize: '14px' }}
+                    >
+                      Activate
                     </button>
                   )}
                 </>

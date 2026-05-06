@@ -183,13 +183,26 @@ export const applicationService = {
   // Delete specific application
   deleteById: (id) => client.delete(`/applications/${id}`),
 
-  // Get specific application (Admin/Internal)
+  // Application details (Admin/Internal)
   getApplication: (id) => client.get(`/applications/${id}`),
+};
 
-  // Notifications
-  getNotifications: () => client.get('/notifications'),
+export const notificationService = {
+  getNotifications: () => client.get('/notifications/all'),
   markNotificationRead: (id) => client.patch(`/notifications/${id}/read`),
   markAllNotificationsRead: () => client.post('/notifications/read-all'),
+  sendHealthCheckNotification: () => {
+    const user = JSON.parse(localStorage.getItem('finflow_user') || '{}');
+    return client.post('/notifications/send', {
+      to: user.email || 'test@finflow.in',
+      subject: 'System Health Check',
+      templateName: 'login-template',
+      model: {
+        name: user.fullName || 'FinFlow User',
+        status: 'SYSTEM_ACTIVE'
+      }
+    });
+  },
 };
 
 export const documentService = {

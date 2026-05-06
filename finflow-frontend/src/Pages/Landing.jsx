@@ -3,35 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
-  BadgeIndianRupee,
   CheckCircle2,
-  Clock3,
-  FileCheck2,
-  Landmark,
-  LockKeyhole,
-  ShieldCheck,
-  UploadCloud,
   ChevronDown,
-  Globe,
-  MessageSquare,
-  Mail,
-  Phone,
-  Zap,
-  Coffee,
-  Ghost,
-  ShieldAlert,
-  Sparkles,
-  Quote,
-  Flame,
-  Fingerprint,
-  Smile,
-  Shield,
-  Search,
-  Star,
-  Wind,
-  Sun,
   Moon,
+  Sun,
   User,
+  Landmark,
+  Coffee,
+  Home
 } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import './LandingFocus.css';
@@ -42,80 +21,73 @@ const formatMoney = (value) => new Intl.NumberFormat('en-IN', {
   maximumFractionDigits: 0,
 }).format(value);
 
-const loanTypes = [
-  'Personal Loan',
-  'Business Loan',
-  'Education Loan',
-  'Home Loan',
-];
-
-const steps = [
-  ['The Honest Ask', 'Tell us how much you need. We won\'t ask for your firstborn, but we do need some numbers.'],
-  ['The Paperwork (Wait, No)', 'Upload a few PDFs. No printers, no ink, no soul-crushing 1995 bureaucracy.'],
-  ['The Human Check', 'A real person (who enjoys coffee and high-speed fiber) verifies your credentials.'],
-  ['The Funding', 'The funds hit your account. Go ahead, make your traditional bank jealous.'],
-];
-
-const features = [
-  [null, 'Unfairly Competent', 'We actually know what we\'re doing.'],
-  [null, 'Zero Ghosting', 'Real-time status updates.'],
-  [null, 'Elite Privacy', 'Encrypted and guarded.'],
-  [null, 'Clean Flow', 'Designed for humans, not fax machines.'],
-];
+const LOAN_DATA = {
+  'Personal Loan': { rate: 0.14 },
+  'Business Loan': { rate: 0.11 },
+  'Education Loan': { rate: 0.085 },
+  'Car Loan': { rate: 0.095 },
+};
 
 const testimonials = [
   {
     name: "Rahul S.",
-    role: "Professional Dreamer & Bank-Hater",
-    text: "Applied at 2 AM in my pajamas. Funded by 10 AM. My bank still thinks I live in the late nineties. Absolute wizards.",
+    text: `"Applied at 2 AM in my pajamas. Funded by 10 AM. My bank still thinks I live in the late nineties. Absolute wizards."`,
   },
   {
     name: "Anita M.",
-    role: "CEO of My Kitchen & Fax-Machine Survivor",
-    text: "Zero fax machines. Zero stamps. Zero bureaucratic nightmares. It's like they actually realize my time has value.",
+    text: `"Zero fax machines. Zero stamps. Zero bureaucratic nightmares. It's like they actually realize my time has value."`,
   },
   {
     name: "Deepak K.",
-    role: "Serial Entrepreneur & Caffeine Addict",
-    text: "The sarcasm in the FAQ made me trust them. Real humans, real speed, real money. This is how banking should feel.",
+    text: `"The sarcasm in the FAQ made me trust them. Real humans, real speed, real money. This is how banking should feel."`,
   }
 ];
 
 const faqs = [
   {
-    q: "How are interest rates determined?",
-    a: "We use math, not magic. Rates are calculated based on your credit profile, income stability, and category. Typically 8.5% to 14.5% APR."
+    question: "Do you guys actually have money, or is this a scam?",
+    answer: "We are backed by highly regulated, deeply audited, tier-1 financial institutions. We just don't dress like them or make you wait 6 weeks for a signature."
   },
   {
-    q: "Who is eligible to apply for a loan?",
-    a: "Anyone aged 21-60 with a steady income and a bank account. Basically, if you're a real person with a real job, you're in the club."
+    question: "Do I need to visit a physical branch?",
+    answer: "What is a branch? A piece of wood attached to a tree? No, please stay on your couch. We don't want to see you in person either."
   },
   {
-    q: "Why does it actually take 48 hours?",
-    a: "Because quality control is a real thing. Our reviewers are fast, but they occasionally enjoy sleeping and eating like normal humans."
+    question: "What's the catch? Why is this so fast?",
+    answer: "The 'catch' is that we use computers instead of fax machines. Your traditional bank could do it too, they just choose to enjoy watching you suffer."
   },
   {
-    q: "What if I have no documents?",
-    a: "Then you're a financial ghost, and we don't lend to the supernatural. We need proof of identity (Aadhaar, PAN, etc.) to keep things legal."
+    question: "Will you spam my email and sell my data?",
+    answer: "Absolutely not. We make money by lending you money, not by selling your email address to questionable vitamin companies. Your secrets are safe."
   },
   {
-    q: "Is my data safe or are you selling it?",
-    a: "We use AES-256 encryption. We value your privacy more than your ex values your feelings. Your data stays with us."
-  },
-  {
-    q: "Can I track my application at 3 AM?",
-    a: "Absolutely. Our dashboard is live 24/7, even when our team is dreaming about beautiful, bug-free code."
+    question: "What happens if I get rejected?",
+    answer: "We tell you immediately. No stringing you along, no 'under review' purgatory. If we can't fund you, we'll reject you instantly so you can move on with your life."
   }
 ];
 
-const LOAN_DATA = {
-  'Personal Loan': { rate: 0.14, icon: <User size={18} /> },
-  'Business Loan': { rate: 0.11, icon: <Landmark size={18} /> },
-  'Education Loan': { rate: 0.085, icon: <Coffee size={18} /> },
-  'Personal Loan': { rate: 0.14 },
-  'Business Loan': { rate: 0.11 },
-  'Education Loan': { rate: 0.085 },
-  'Home Loan': { rate: 0.075 },
+const FAQItem = ({ question, answer }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className={`l-faq-item ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(!isOpen)}>
+      <div className="l-faq-q">
+        <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>{question}</h4>
+        <ChevronDown size={20} style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+      </div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <p className="l-faq-a">{answer}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 };
 
 const Landing = () => {
@@ -124,8 +96,6 @@ const Landing = () => {
   const [amount, setAmount] = useState(250000);
   const [months, setMonths] = useState(36);
   const [loanType, setLoanType] = useState('Education Loan');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [activeFaq, setActiveFaq] = useState(null);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('finflow_theme') || 'dark';
@@ -140,6 +110,7 @@ const Landing = () => {
   };
 
   const dashboardPath = (userRole === 'ADMIN' || userRole === 'ROLE_ADMIN') ? '/admin/dashboard' : '/applicant/dashboard';
+  const applyPath = isAuthenticated ? '/applicant/apply' : '/signup';
 
   const emi = useMemo(() => {
     const annualRate = LOAN_DATA[loanType]?.rate || 0.11;
@@ -148,350 +119,245 @@ const Landing = () => {
     return Math.round((amount * monthlyRate * compound) / (compound - 1));
   }, [amount, months, loanType]);
 
-  const applyPath = isAuthenticated ? '/applicant/apply' : '/signup';
-
-  const getLoanTypeEnum = (type) => {
-    return type.toUpperCase().replace(' ', '_');
-  };
-
   const handleApply = () => {
     navigate(applyPath, {
       state: {
         requestedAmount: amount,
         tenureMonths: months,
-        loanType: getLoanTypeEnum(loanType)
+        loanType: loanType.toUpperCase().replace(' ', '_')
       }
     });
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
-  };
-
   return (
-    <div className={`focus-page ${!isDarkMode ? 'light-mode' : ''}`}>
-      <nav className="focus-nav">
-        <Link to="/" className="focus-brand">
-          <motion.div
-            animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Landmark size={22} />
-          </motion.div>
-          <span>FinFlow</span>
-        </Link>
+    <div className={`landing-wrapper ${!isDarkMode ? 'light-theme' : ''}`}>
+      {/* NAVBAR */}
+      <nav className="l-nav">
+        <div className="l-nav-container">
+          <div className="l-nav-left">
+            <Link to="/" className="l-brand">
+              <div className="l-brand-logo">F</div>
+              <h1 className="l-brand-text">FinFlow</h1>
+            </Link>
+          </div>
 
-        <div className="focus-links">
-          <a href="#loans">The Cash</a>
-          <a href="#process">The Path</a>
-          <a href="#testimonials">The Hype</a>
-          <a href="#faq">Curiosity</a>
-        </div>
+          <div className="l-nav-links">
+            <a href="#cash">The Cash</a>
+            <a href="#path">The Path</a>
+            <a href="#hype">The Hype</a>
+            <a href="#faq">Curiosity</a>
+          </div>
 
-        <div className="focus-actions">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="focus-btn subtle"
-            onClick={toggleTheme}
-            style={{ width: '42px', padding: 0, borderRadius: '50%' }}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={isDarkMode ? "dark" : "light"}
-                initial={{ opacity: 0, rotate: -45 }}
-                animate={{ opacity: 1, rotate: 0 }}
-                exit={{ opacity: 0, rotate: 45 }}
-                transition={{ duration: 0.2 }}
-              >
-                {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
-              </motion.div>
-            </AnimatePresence>
-          </motion.button>
-
-          {isAuthenticated ? (
-            <button className="focus-btn primary shimmer-effect" onClick={() => navigate(dashboardPath)}>
-              Dashboard <ArrowRight size={16} />
+          <div className="l-nav-right">
+            <button onClick={toggleTheme} className="l-theme-toggle">
+              {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
             </button>
-          ) : (
-            <>
-              <button className="focus-btn subtle" onClick={() => navigate('/login')}>Login</button>
-              <button className="focus-btn primary shimmer-effect" onClick={() => navigate('/signup')}>Join the Club</button>
-            </>
-          )}
+            {isAuthenticated ? (
+              <button className="l-btn-primary" onClick={() => navigate(dashboardPath)}>
+                Dashboard <ArrowRight size={16} />
+              </button>
+            ) : (
+              <>
+                <button className="l-btn-outline" onClick={() => navigate('/login')}>Login</button>
+                <button className="l-btn-primary" onClick={() => navigate('/signup')}>Join the Club</button>
+              </>
+            )}
+          </div>
         </div>
       </nav>
 
-      <main>
-        <section className="focus-hero">
-          <div className="hero-copy">
-            <span className="hero-label">Finally, a bank that doesn't suck.</span>
-            <h1 className="hero-title">
-              Approved before your bank finishes saying ‘hello?’
+      {/* HERO */}
+      <div className="l-hero-bg" id="cash">
+        <div className="l-hero-container">
+          {/* Left Content */}
+          <div className="l-hero-content">
+            <p className="l-hero-eyebrow">Finally, a bank that doesn't suck.</p>
+            <h1 className="l-hero-title">
+              Approved before<br/>your bank finishes<br/>saying <span className="l-text-gradient">'hello'</span>
             </h1>
-            <p>
-              100% digital. No paperwork. No ‘please hold.’ Just money.
+            <p className="l-hero-desc">
+              100% digital. No paperwork. No 'please hold.' Just money.
             </p>
-
-            <div className="hero-buttons">
-              <button
-                className="focus-btn primary large shimmer-effect"
-                onClick={handleApply}
-              >
+            
+            <div className="l-hero-actions">
+              <button onClick={handleApply} className="l-btn-primary l-btn-large">
                 Fund My Future <ArrowRight size={18} />
               </button>
-              <a className="focus-btn subtle large" href="#loans">Play with Numbers</a>
+              <a href="#cash" className="l-btn-outline l-btn-large">
+                Play with Numbers
+              </a>
             </div>
-
-            <div className="hero-proof">
-              <span><CheckCircle2 size={16} /> 100% Digital</span>
-              <span><CheckCircle2 size={16} /> Human-ish Speed</span>
-              <span><CheckCircle2 size={16} /> Zero Fax Machines</span>
+            
+            <div className="l-hero-proof">
+              <div className="l-proof-item"><CheckCircle2 className="l-text-emerald" size={18} /><span>100% Digital</span></div>
+              <div className="l-proof-item"><CheckCircle2 className="l-text-emerald" size={18} /><span>Human-ish Speed</span></div>
+              <div className="l-proof-item"><CheckCircle2 className="l-text-emerald" size={18} /><span>Zero Fax Machines</span></div>
             </div>
           </div>
 
-          <aside className="loan-card">
-            <div className="loan-card-head">
+          {/* EMI Calculator */}
+          <div className="l-emi-card">
+            <div className="l-emi-header">
               <div>
-                <span>Calculate Your EMI</span>
-                <strong>{loanType}</strong>
+                <span className="l-emi-eyebrow">Calculate Your EMI</span>
+                <h2 className="l-emi-title">{loanType}</h2>
               </div>
-            </div>
-
-            <div className="clean-field">
-              <span>Loan Category</span>
-              <div className="custom-select-container">
-                <div
-                  className={`custom-select-trigger ${isDropdownOpen ? 'active' : ''}`}
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                >
-                  <div className="trigger-val">
-                    {loanType}
-                  </div>
-                  <ChevronDown size={18} className={`chevron ${isDropdownOpen ? 'rotate' : ''}`} />
-                </div>
-                {isDropdownOpen && (
-                  <div className="custom-options">
-                    {Object.keys(LOAN_DATA).map((type) => (
-                      <div
-                        key={type}
-                        className={`custom-option ${loanType === type ? 'selected' : ''}`}
-                        onClick={() => {
-                          setLoanType(type);
-                          setIsDropdownOpen(false);
-                        }}
-                      >
-                        <div className="option-info">
-                          <span className="opt-name">{type}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="range-block">
-              <div>
-                <span>Loan Amount</span>
-                <strong>{formatMoney(amount)}</strong>
-              </div>
-              <input
-                type="range"
-                min="50000"
-                max="5000000"
-                step="50000"
-                value={amount}
-                onChange={(event) => setAmount(Number(event.target.value))}
-              />
-            </div>
-
-            <div className="range-block">
-              <div>
-                <span>Tenure</span>
-                <strong>{months} months</strong>
-              </div>
-              <input
-                type="range"
-                min="6"
-                max="84"
-                step="6"
-                value={months}
-                onChange={(event) => setMonths(Number(event.target.value))}
-              />
-            </div>
-
-            <div className="emi-box">
-              <span>Estimated Monthly EMI</span>
-              <strong>{formatMoney(emi)}</strong>
-              <p>Actual EMI may vary based on final credit assessment and interest rates.</p>
-            </div>
-
-            <button className="focus-btn primary full shimmer-effect" onClick={handleApply}>
-              Proceed with Application <ArrowRight size={16} />
-            </button>
-          </aside>
-        </section>
-
-        <section className="feature-row">
-          {features.map(([Icon, title, copy]) => (
-            <article key={title}>
-              <h3>{title}</h3>
-              <p>{copy}</p>
-            </article>
-          ))}
-        </section>
-
-        <section className="process-section" id="process">
-          <div className="section-heading">
-            <span>The Magic Trick</span>
-            <h2>Four steps. No mystery. Zero government-style queues.</h2>
-          </div>
-
-          <div className="process-grid">
-            {steps.map(([title, copy], index) => (
-              <article key={title}>
-                <span>{String(index + 1).padStart(2, '0')}</span>
-                <h3>{title}</h3>
-                <p>{copy}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-
-
-        <section className="faq-section" id="testimonials" style={{ marginTop: '0' }}>
-          <div className="faq-header">
-            <span className="hero-label">The Hype</span>
-            <h2>What people (probably) say about us</h2>
-          </div>
-          <div className="process-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-            {testimonials.map((t, idx) => (
-              <article key={idx} style={{ minHeight: '260px', position: 'relative' }}>
-                <p style={{ fontStyle: 'italic', fontSize: '16px', color: 'var(--text-color)' }}>"{t.text}"</p>
-                <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
-                  <strong style={{ display: 'block', color: 'var(--feature-title)' }}>{t.name}</strong>
-                  <span style={{ fontSize: '12px', color: 'var(--feature-text)' }}>{t.role}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="faq-section" id="faq">
-          <div className="faq-header">
-            <span className="hero-label">Curiosity Corner</span>
-            <h2>Commonly Asked (and Answered)</h2>
-          </div>
-          <div className="faq-grid">
-            {faqs.map((faq, idx) => (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                key={idx}
-                className={`faq-item ${activeFaq === idx ? 'active' : ''}`}
+              <select 
+                className="l-emi-select" 
+                value={loanType} 
+                onChange={(e) => setLoanType(e.target.value)}
               >
-                <button className="faq-question" onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}>
-                  {faq.q}
-                  <ChevronDown size={20} />
-                </button>
-                <AnimatePresence>
-                  {activeFaq === idx && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="faq-answer"
-                    >
-                      {faq.a}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        <motion.section
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="final-focus"
-        >
-          <h2>Ready to change your life? Or just your balance?</h2>
-          <p>Join thousands of people who decided that waiting in branches was a waste of perfectly good life.</p>
-          <button className="focus-btn primary large shimmer-effect" onClick={handleApply}>
-            Start the Flow <ArrowRight size={18} />
-          </button>
-        </motion.section>
-      </main>
-
-      <footer className="focus-footer">
-        <div className="footer-container">
-          <div className="footer-brand">
-            <div className="footer-logo">
-              <Landmark size={28} />
-              <span>FinFlow</span>
+                {Object.keys(LOAN_DATA).map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
             </div>
-            <p className="footer-desc">
-              Making lending actually tolerable. One digital step at a time.
-            </p>
-            <div className="hero-proof" style={{ marginTop: '10px', background: 'none', border: 'none', padding: 0 }}>
-              <Globe size={18} style={{ marginRight: '15px', color: 'var(--nav-text)', cursor: 'pointer' }} />
-              <MessageSquare size={18} style={{ marginRight: '15px', color: 'var(--nav-text)', cursor: 'pointer' }} />
-              <Mail size={18} style={{ marginRight: '15px', color: 'var(--nav-text)', cursor: 'pointer' }} />
-              <Phone size={18} style={{ color: 'var(--nav-text)', cursor: 'pointer' }} />
-            </div>
-          </div>
 
-          <div className="footer-col">
-            <h4>The Money</h4>
-            <div className="footer-links">
-              <Link to="/#loans">Personal</Link>
-              <Link to="/#loans">Business</Link>
-              <Link to="/#process">How it Works</Link>
-              <Link to="/#loans">The Calculator</Link>
-            </div>
-          </div>
+            <div className="l-emi-body">
+              <div className="l-slider-group">
+                <div className="l-slider-labels">
+                  <span>Loan Amount</span>
+                  <span className="l-slider-val">{formatMoney(amount)}</span>
+                </div>
+                <input type="range" min="50000" max="5000000" step="10000" value={amount} onChange={e => setAmount(Number(e.target.value))} className="l-slider" />
+              </div>
 
-          <div className="footer-col">
-            <h4>The Boring Stuff</h4>
-            <div className="footer-links">
-              <Link to="/">About Us</Link>
-              <Link to="/">Careers</Link>
-              <Link to="/">Privacy Policy</Link>
-              <Link to="/">Legal Jargon</Link>
-            </div>
-          </div>
+              <div className="l-slider-group">
+                <div className="l-slider-labels">
+                  <span>Tenure</span>
+                  <span className="l-slider-val">{months} months</span>
+                </div>
+                <input type="range" min="12" max="84" step="6" value={months} onChange={e => setMonths(Number(e.target.value))} className="l-slider" />
+              </div>
 
-          <div className="footer-col">
-            <h4>Talk to Us</h4>
-            <div className="footer-links">
-              <a href="mailto:support@finflow.com">Email a Human</a>
-              <a href="tel:+1234567890">Call the Office</a>
-              <span>Somewhere on Planet Earth</span>
+              <div className="l-emi-result">
+                <p className="l-result-eyebrow">ESTIMATED MONTHLY EMI</p>
+                <p className="l-result-val">{formatMoney(emi)}</p>
+                <p className="l-result-disclaimer">Actual EMI may vary based on final credit assessment and interest rates.</p>
+              </div>
+
+              <button onClick={handleApply} className="l-btn-white">
+                Proceed with Application <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         </div>
-        <div className="footer-bottom">
-          <span>&copy; {new Date().getFullYear()} FinFlow Inc. (We're legit).</span>
-          <span>Made with &hearts; and way too much caffeine.</span>
+      </div>
+
+      {/* VALUE PROPS */}
+      <div className="l-props-container">
+        <div className="l-prop-card">
+          <h3>Unfairly Competent</h3>
+          <p>We actually know what we're doing. It's shocking, we know.</p>
+        </div>
+        <div className="l-prop-card">
+          <h3>Zero Ghosting</h3>
+          <p>We give real-time updates. Better communication than your ex.</p>
+        </div>
+        <div className="l-prop-card">
+          <h3>Fort Knox Privacy</h3>
+          <p>We don't sell your data. Frankly, no one wants to buy your Spotify playlist.</p>
+        </div>
+        <div className="l-prop-card">
+          <h3>Zero Anxiety</h3>
+          <p>Our UI is so smooth it practically apologizes for making you type your own name.</p>
+        </div>
+      </div>
+
+      {/* FOUR STEPS */}
+      <div className="l-steps-bg" id="path">
+        <div className="l-steps-header">
+          <span className="l-text-cyan">The Magic Trick</span>
+          <h2>Four steps. No mystery.<br/>Zero government-style queues.</h2>
+        </div>
+
+        <div className="l-steps-grid">
+          <div className="l-step-card">
+            <div className="l-step-num">01</div>
+            <h3>The Honest Ask</h3>
+            <p>Tell us how much you need. We won't ask for your firstborn, but we do need some numbers.</p>
+          </div>
+          <div className="l-step-card">
+            <div className="l-step-num">02</div>
+            <h3>The Paperwork (Wait, No)</h3>
+            <p>Upload a few PDFs. No printers, no ink, no soul-crushing 1995 bureaucracy.</p>
+          </div>
+          <div className="l-step-card">
+            <div className="l-step-num">03</div>
+            <h3>The Human Check</h3>
+            <p>A real person (who enjoys coffee and high-speed fiber) verifies your credentials.</p>
+          </div>
+          <div className="l-step-card">
+            <div className="l-step-num">04</div>
+            <h3>The Funding</h3>
+            <p>The funds hit your account. Go ahead, make your traditional bank jealous.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* TESTIMONIALS */}
+      <div className="l-testimonials-container" id="hype">
+        <div className="l-testimonials-grid">
+          {testimonials.map((t, i) => (
+            <div key={i} className="l-testimonial-card">
+              <p className="l-quote">{t.text}</p>
+              <p className="l-author">{t.name}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="l-faq-header" id="faq">
+          <p className="l-text-cyan">Curiosity Corner</p>
+          <h2>Commonly Asked (and Answered)</h2>
+        </div>
+        <div className="l-faq-body">
+          <div className="l-faq-list">
+            {faqs.map((f, i) => (
+              <FAQItem key={i} question={f.question} answer={f.answer} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <footer className="l-footer">
+        <div className="l-footer-grid">
+          <div>
+            <div className="l-footer-brand">
+              <div className="l-brand-logo-small">F</div>
+              <span>FinFlow</span>
+            </div>
+            <p className="l-footer-desc">Making lending actually tolerable.<br/>One digital step at a time.</p>
+          </div>
+          <div>
+            <h4>The Money</h4>
+            <div className="l-footer-links">
+              <a href="#cash">Personal</a>
+              <a href="#cash">Business</a>
+              <a href="#path">How it Works</a>
+              <a href="#cash">The Calculator</a>
+            </div>
+          </div>
+          <div>
+            <h4>The Boring Stuff</h4>
+            <div className="l-footer-links">
+              <a href="#">About Us (We're nerds)</a>
+              <a href="#">Careers (We have snacks)</a>
+              <a href="#">Privacy Policy</a>
+              <a href="#">Legal Jargon</a>
+            </div>
+          </div>
+          <div>
+            <h4>Talk to Us</h4>
+            <div className="l-footer-links">
+              <a href="#">Email a Human</a>
+              <a href="#">Call the Office</a>
+              <a href="#">Somewhere on Planet Earth</a>
+            </div>
+          </div>
+        </div>
+        <div className="l-footer-bottom">
+          © {new Date().getFullYear()} FinFlow Inc. (A totally real company. Do not feed the bankers.)
         </div>
       </footer>
     </div>

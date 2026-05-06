@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Check, Clock, AlertCircle, FileCheck, ShieldCheck,
   FileText, UserCheck, Briefcase, CreditCard, Upload, Search, XCircle
@@ -53,6 +53,8 @@ const resolveStep = (status = '') => {
 };
 
 const ApplicationTimeline = ({ timeline }) => {
+  const [showAll, setShowAll] = useState(false);
+
   if (!timeline || timeline.length === 0) return null;
 
   const sorted = [...timeline].sort((a, b) => {
@@ -60,6 +62,21 @@ const ApplicationTimeline = ({ timeline }) => {
     const tb = new Date(a.changedAt || a.time);
     return ta - tb;
   });
+
+  // Keep the timeline clean by removing consecutive identical states
+  const cleanTimeline = sorted.filter((event, index, arr) => {
+    if (index === 0) return true;
+    const currentStatus = (event.toStatus || event.status || '').toUpperCase();
+    const prevStatus = (arr[index - 1].toStatus || arr[index - 1].status || '').toUpperCase();
+    return currentStatus !== prevStatus;
+  });
+
+  const majorTimeline = cleanTimeline.filter(event => {
+    const status = (event.toStatus || event.status || '').toUpperCase();
+    return !!STATUS_CONFIG[status];
+  });
+
+  const displayTimeline = showAll ? cleanTimeline : (majorTimeline.length > 0 ? majorTimeline : cleanTimeline);
 
   const latestStatus = (sorted[0]?.toStatus || sorted[0]?.status || 'DRAFT').toUpperCase();
   const currentStep = resolveStep(latestStatus);
@@ -94,11 +111,11 @@ const ApplicationTimeline = ({ timeline }) => {
       <div className="system-card">
         <div className="system-header">
           <h3>Audit History Log</h3>
-          <span className="system-time">{sorted.length} Systematic Entries</span>
+          <span className="system-time">{cleanTimeline.length} Systematic Entries</span>
         </div>
 
         <div className="ledger-entries">
-          {sorted.map((event, index) => {
+          {displayTimeline.map((event, index) => {
             const status = (event.toStatus || event.status || '').toUpperCase();
             const config = getConfig(status);
             const IconComp = config.icon;
@@ -112,7 +129,7 @@ const ApplicationTimeline = ({ timeline }) => {
                   <div className="marker-circle-v2">
                     <IconComp size={14} />
                   </div>
-                  {index < sorted.length - 1 && <div className="marker-line-v2" />}
+                  {index < displayTimeline.length - 1 && <div className="marker-line-v2" />}
                 </div>
 
                 <div className="system-content-v2">
@@ -131,6 +148,29 @@ const ApplicationTimeline = ({ timeline }) => {
             );
           })}
         </div>
+        
+        {cleanTimeline.length > majorTimeline.length && (
+          <button 
+            onClick={() => setShowAll(!showAll)}
+            style={{ 
+              marginTop: '24px', 
+              width: '100%', 
+              padding: '12px', 
+              background: 'transparent', 
+              border: '1px dashed var(--line)', 
+              borderRadius: '12px',
+              color: 'var(--muted)',
+              fontSize: '13px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.borderColor = 'var(--line-strong)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.borderColor = 'var(--line)'; }}
+          >
+            {showAll ? 'Collapse Detailed Audit Log' : `View Full Audit Trail (${cleanTimeline.length} entries)`}
+          </button>
+        )}
       </div>
     </div>
   );

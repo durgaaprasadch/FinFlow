@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Bell, CheckCheck, BellRing } from 'lucide-react';
-import { applicationService } from '../api';
+import { applicationService, notificationService } from '../api';
+import { unwrap } from '../utils/format';
 import { useSelector } from 'react-redux';
 import { formatDistanceToNow } from 'date-fns';
 import '../Pages/DashboardFocus.css';
@@ -21,16 +22,26 @@ const NotificationDropdown = () => {
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
+    console.log('[NOTIF-DEBUG] Fetching notifications for user...', user);
     try {
-      const res = await applicationService.getNotifications();
-      // Controller returns array directly → res.data IS the array
-      const list = Array.isArray(res?.data) ? res.data
-                 : Array.isArray(res?.data?.data) ? res.data.data
-                 : [];
+      const res = await notificationService.getNotifications();
+      const data = unwrap(res);
+      const list = Array.isArray(data) ? data : [];
       setNotifications(list);
       setUnreadCount(list.filter(n => !n.read).length);
     } catch (err) {
-      // Silently fail — notifications are non-critical
+      console.error('[NOTIF-FETCH-ERROR]', err);
+      // If we're getting a 404 or connection error, let's at least show the user something went wrong
+      if (!notifications.length) {
+        setNotifications([{
+          id: 'error-diag',
+          title: 'Connectivity Alert',
+          message: `Error: ${err.message || 'Network Failure'}. Target: ${err.config?.url || 'Unknown URL'}`,
+          type: 'SYSTEM',
+          read: false,
+          createdAt: new Date().toISOString()
+        }]);
+      }
     }
   }, [user]);
 
@@ -61,7 +72,7 @@ const NotificationDropdown = () => {
 
   const markAsRead = async (id) => {
     try {
-      await applicationService.markNotificationRead(id);
+      await notificationService.markNotificationRead(id);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch { /* ignore */ }
@@ -69,7 +80,7 @@ const NotificationDropdown = () => {
 
   const markAllRead = async () => {
     try {
-      await applicationService.markAllNotificationsRead();
+      await notificationService.markAllNotificationsRead();
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch { /* ignore */ }

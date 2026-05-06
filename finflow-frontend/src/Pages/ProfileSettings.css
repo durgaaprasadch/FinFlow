@@ -1,0 +1,315 @@
+:root {
+  /* Default Light Mode */
+  --ps-bg: #f4f4f5;
+  --ps-surface: #ffffff;
+  --ps-surface-2: #f4f4f5;
+  --ps-ink: #18181b;
+  --ps-muted: #71717a;
+  --ps-line: #e4e4e7;
+  --ps-line-strong: #d4d4d8;
+  --ps-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+}
+
+.dark-mode {
+  /* Institutional Dark Mode (Zinc-950) */
+  --ps-bg: #020617;
+  --ps-surface: #09090b;
+  --ps-surface-2: #18181b;
+  --ps-ink: #f4f4f5;
+  --ps-muted: #a1a1aa;
+  --ps-line: rgba(255, 255, 255, 0.1);
+  --ps-line-strong: rgba(255, 255, 255, 0.2);
+  --ps-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+.ps-page {
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--ink);
+  padding: 12px 32px 80px;
+  max-width: 1400px;
+  margin: 0 auto;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+
+
+.ps-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+/* ── Left Sidebar Nav ── */
+.ps-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ps-nav-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  width: 100%;
+  height: fit-content;
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.ps-nav-card:hover {
+  background: var(--ps-surface-2);
+  transform: translateX(6px);
+  border-color: var(--ps-line-strong);
+}
+
+.ps-nav-card--active {
+  background: #2563eb !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+.ps-nav-card--active .ps-nav-label {
+  color: #ffffff !important;
+}
+
+.ps-nav-card--active .ps-nav-desc {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.ps-nav-card--active svg {
+  color: #ffffff !important;
+}
+
+.ps-nav-card--danger:hover {
+  border-color: #ef4444;
+}
+
+.ps-nav-card--danger.ps-nav-card--active {
+  background: #ef4444 !important;
+  border-color: #f87171 !important;
+  color: #ffffff !important;
+}
+
+.ps-nav-card--danger.ps-nav-card--active .ps-nav-label,
+.ps-nav-card--danger.ps-nav-card--active .ps-nav-desc,
+.ps-nav-card--danger.ps-nav-card--active svg {
+  color: #ffffff !important;
+}
+
+.ps-nav-info {
+  flex: 1;
+}
+
+.ps-nav-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.ps-nav-desc {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--ps-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* ── Content Section ── */
+.ps-content {
+  background: transparent;
+}
+
+
+
+.ps-meta-grid {
+  display: flex;
+  gap: 48px;
+  margin-bottom: 48px;
+}
+
+.ps-meta-item label {
+  display: block;
+  font-size: 13px;
+  color: var(--ps-muted);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.ps-meta-item p {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ── Form Controls ── */
+.ps-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.ps-field-group {
+  margin-bottom: 24px;
+}
+
+.ps-field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.ps-input-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 18px 24px;
+  border-radius: 24px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+  width: 100%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ps-input-box:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.ps-input-box input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: inherit;
+  font: inherit;
+  width: 100%;
+}
+
+.ps-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffffff;
+  background: #10b981;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+
+/* ── VIP Buttons ── */
+.btn-vip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 0 24px;
+  height: 52px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-vip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+}
+
+.btn-vip:active {
+  transform: translateY(0);
+}
+
+.btn-vip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Danger Zone ── */
+.ps-danger-banner {
+  background: rgba(239, 68, 68, 0.03);
+  border: 1px dashed rgba(239, 68, 68, 0.3);
+  padding: 32px;
+  border-radius: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.ps-danger-text h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ef4444;
+  margin-bottom: 4px;
+}
+
+.ps-danger-text p {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.ps-btn-danger {
+  background: #ef4444;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ps-btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+}
+
+/* ── Airplane Mode ── */
+.ps-airplane-toggle {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 12px 24px;
+  border-radius: 24px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  margin-top: 64px;
+}
+
+.ps-airplane-toggle:hover {
+  background: var(--ps-surface-2);
+  border-color: var(--ps-muted);
+}
+
+.ps-airplane-toggle.active {
+  background: var(--blue-muted);
+  border-color: var(--blue);
+}

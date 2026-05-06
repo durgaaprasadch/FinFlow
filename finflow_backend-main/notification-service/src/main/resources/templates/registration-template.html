@@ -11,6 +11,9 @@
         .logo span { color: #3b82f6; }
         .content { padding: 40px 30px; line-height: 1.6; }
         .title { font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 20px; }
+        .otp-container { margin: 30px 0; padding: 30px; background: #f1f5f9; border-radius: 12px; text-align: center; border: 1px dashed #cbd5e1; }
+        .otp-label { font-size: 14px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        .otp-code { font-size: 42px; font-weight: 800; color: #3b82f6; letter-spacing: 8px; margin: 0; }
         .btn { display: inline-block; padding: 14px 28px; background-color: #3b82f6; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 25px; }
         .footer { background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #64748b; }
         .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
@@ -24,9 +27,22 @@
             <div style="opacity: 0.8; font-size: 14px;">Next-Gen Digital Lending</div>
         </div>
         <div class="content">
-            <div class="title">Welcome to the Future of Finance, [[${name}]]!</div>
-            <p>Your FinFlow account has been successfully initialized. You now have access to our streamlined, microservice-powered lending platform.</p>
+            <div class="title" th:text="${otp != null ? 'Verify Your Identity' : 'Welcome to the Future of Finance, ' + name + '!'}">Welcome!</div>
             
+            <p th:if="${otp != null}">
+                Thank you for joining FinFlow. To complete your registration and activate your account, please use the secure verification code below:
+            </p>
+            <p th:if="${otp == null}">
+                Your FinFlow account has been successfully initialized. You now have access to our streamlined, microservice-powered lending platform.
+            </p>
+            
+            <!-- OTP Section -->
+            <div th:if="${otp != null}" class="otp-container">
+                <div class="otp-label">Verification Code</div>
+                <div class="otp-code">[[${otp}]]</div>
+                <p style="font-size: 12px; color: #94a3b8; margin-top: 15px;">This code is valid for 10 minutes. Please do not share it with anyone.</p>
+            </div>
+
             <div class="feature-grid">
                 <div class="feature-item">
                     <strong>⚡ Lightning Fast</strong><br>Apply in under 5 minutes.
@@ -36,9 +52,12 @@
                 </div>
             </div>
 
-            <p>Ready to secure your funding? Click below to complete your profile and start your first application.</p>
+            <p th:if="${otp == null}">Ready to secure your funding? Click below to complete your profile and start your first application.</p>
+            <p th:if="${otp != null}">Once verified, you'll be able to access your dashboard and start your application.</p>
             
-            <a href="https://thefinflow.netlify.app/login" class="btn">Access Dashboard</a>
+            <a th:href="${otp != null ? 'https://thefinflow.netlify.app/signup' : 'https://thefinflow.netlify.app/login'}" 
+               class="btn" 
+               th:text="${otp != null ? 'Return to Signup' : 'Access Dashboard'}">Action</a>
         </div>
         <div class="footer">
             &copy; 2026 FinFlow Enterprise. All rights reserved.<br>

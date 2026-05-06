@@ -96,8 +96,13 @@ public class NotificationListener {
             case "APPROVED"                 -> "Great news! Your loan application" + amtPart + " has been approved.";
             case "REJECTED"                 -> "Your loan application" + amtPart + " was not approved at this time.";
             case "DOCS_VERIFIED"            -> "Your documents have been verified. Your application is now under review.";
+            case "DOCS_REUPLOADED"         -> "Success: Your documents have been re-uploaded and are now in the verification queue.";
+            case "UPLOADED"                 -> "Protocol Update: Documents have been successfully uploaded.";
+            case "VERIFIED"                 -> "Protocol Update: Your application has been verified by our operations team.";
             case "REVIEW"                   -> "Your application is now under underwriting review.";
             case "REUPLOAD"                 -> "Action required: Some documents need to be re-uploaded.";
+            case "FAIL"                     -> "System Alert: There was a problem processing your application. Please contact support.";
+            case "PARTIAL"                  -> "Protocol Update: Your application is partially complete. Please finish the remaining steps.";
             default                         -> "Protocol Alert: Your loan application status has been updated to " + capitalise(status) + ".";
         };
     }

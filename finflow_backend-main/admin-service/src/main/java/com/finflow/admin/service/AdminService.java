@@ -285,6 +285,30 @@ public class AdminService {
         response.putIfAbsent(FIELD_APPLICATION_ID, applicationId);
         response.put(FIELD_STATUS, targetStatus);
         response.put("verifiedAt", java.time.LocalDateTime.now());
+
+        // Notify the user that documents are verified
+        try {
+            String applicantUsername = (String) application.get(FIELD_APPLICANT_USERNAME);
+            String fullName = (String) application.get(FIELD_FULL_NAME);
+
+            com.finflow.notification.dto.NotificationRequest notification = com.finflow.notification.dto.NotificationRequest
+                    .builder()
+                    .to(applicantUsername)
+                    .subject("FinFlow: Documents Verified Successfully")
+                    .templateName("loan-status-template")
+                    .model(java.util.Map.of(
+                            "name", fullName != null ? fullName : "Valued Customer",
+                            FIELD_APPLICATION_ID, "APP-" + applicationId,
+                            FIELD_STATUS, targetStatus,
+                            "remarks", remarks != null ? remarks : "Your documents have been verified by our team."))
+                    .build();
+
+            rabbitTemplate.convertAndSend(notificationExchange, loanStatusRoutingKey, notification);
+            log.info("Queued document verification notification for user: {}", applicantUsername);
+        } catch (Exception e) {
+            log.error("Failed to queue verification notification for applicant {}: {}", applicantId, e.getMessage());
+        }
+
         return response;
     }
 

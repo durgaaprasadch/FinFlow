@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { applicationService } from '../api';
 import { unwrap } from '../utils/format';
-import { BarChart3, Bell, FileText, FolderOpen, History, Landmark, LayoutDashboard, Settings, ShieldCheck, UploadCloud, Users } from 'lucide-react';
+import { BarChart3, Bell, FileText, FolderOpen, History, Landmark, LayoutDashboard, Settings, UploadCloud, Users } from 'lucide-react';
 import './Sidebar.css';
 
 const applicantNav = [
@@ -19,7 +19,6 @@ const adminNav = [
   ['Overview', '/admin/dashboard', LayoutDashboard],
   ['Applications', '/admin/applications', FileText],
   ['Users', '/admin/users', Users],
-  ['Fraud audit', '/admin/fraud-detection', ShieldCheck],
   ['Analytics', '/admin/analytics', BarChart3],
   ['Settings', '/admin/settings', Settings],
 ];

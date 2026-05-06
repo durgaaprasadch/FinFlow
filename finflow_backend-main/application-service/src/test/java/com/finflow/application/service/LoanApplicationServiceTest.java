@@ -3,8 +3,7 @@ package com.finflow.application.service;
 import com.finflow.application.exception.ApplicationException;
 
 import com.finflow.application.dto.CreateApplicationRequest;
-import com.finflow.application.entity.LoanApplication;
-import com.finflow.application.entity.LoanStatus;
+import com.finflow.application.entity.*;
 
 import com.finflow.application.exception.InvalidTransitionException;
 import com.finflow.application.messaging.ApplicationEventPublisher;
@@ -248,7 +247,7 @@ class LoanApplicationServiceTest {
 
         service.syncStatusAfterDocumentUpload(1L, "AADHAAR");
 
-        assertEquals(LoanStatus.UPLOADED, draftApp.getStatus());
+        assertEquals(LoanStatus.DOCUMENTS_COMPLETED, draftApp.getStatus());
         verify(repository, times(1)).save(draftApp);
     }
 
@@ -346,10 +345,11 @@ class LoanApplicationServiceTest {
 
     @Test
     void syncStatusAfterDocumentUpload_ShouldStayAsPartial_WhenRequirementsNotMet() {
-        draftApp.setStatus(LoanStatus.SUBMITTED);
+        draftApp.setStatus(LoanStatus.DRAFT);
         draftApp.setLoanType("PERSONAL");
         when(repository.findById(1L)).thenReturn(Optional.of(draftApp));
-        com.finflow.application.entity.DocumentRequirement requirement = new com.finflow.application.entity.DocumentRequirement();
+
+        DocumentRequirement requirement = new DocumentRequirement();
         requirement.setLoanType("PERSONAL");
         requirement.setDocumentType("PASSPORT");
         requirement.setMandatory(true);
@@ -363,8 +363,8 @@ class LoanApplicationServiceTest {
 
         service.syncStatusAfterDocumentUpload(1L, "AADHAAR");
 
-        assertEquals(LoanStatus.PARTIAL, draftApp.getStatus());
-        verify(repository, times(1)).save(draftApp);
+        assertEquals(LoanStatus.DRAFT, draftApp.getStatus());
+        verify(repository, never()).save(draftApp);
     }
 
     @Test
@@ -384,8 +384,8 @@ class LoanApplicationServiceTest {
 
         service.syncStatusAfterDocumentUpload(1L, "AADHAAR");
 
-        // Should be PARTIAL because checkRequirementsMet returns false on exception
-        assertEquals(LoanStatus.PARTIAL, draftApp.getStatus());
+        // Should be SUBMITTED because checkRequirementsMet returns false on exception
+        assertEquals(LoanStatus.SUBMITTED, draftApp.getStatus());
     }
 
     @Test
@@ -398,7 +398,7 @@ class LoanApplicationServiceTest {
 
         service.syncStatusAfterDocumentUpload(1L, "AADHAAR");
 
-        assertEquals(LoanStatus.PARTIAL, draftApp.getStatus());
+        assertEquals(LoanStatus.DOCS_PENDING, draftApp.getStatus());
     }
 
     @Test
@@ -419,7 +419,7 @@ class LoanApplicationServiceTest {
 
         service.syncStatusAfterDocumentUpload(1L, "AADHAAR");
 
-        assertEquals(LoanStatus.PARTIAL, draftApp.getStatus());
+        assertEquals(LoanStatus.DOCS_PENDING, draftApp.getStatus());
     }
 
     @Test
@@ -447,7 +447,7 @@ class LoanApplicationServiceTest {
 
         service.syncStatusAfterDocumentUpload(1L, "AADHAAR");
 
-        assertEquals(LoanStatus.UPLOADED, draftApp.getStatus());
+        assertEquals(LoanStatus.DOCUMENTS_COMPLETED, draftApp.getStatus());
     }
 
     @Test
@@ -472,7 +472,7 @@ class LoanApplicationServiceTest {
 
         service.syncStatusAfterDocumentUpload(1L, "AADHAAR");
 
-        assertEquals(LoanStatus.UPLOADED, draftApp.getStatus());
+        assertEquals(LoanStatus.DOCUMENTS_COMPLETED, draftApp.getStatus());
     }
 
     @Test

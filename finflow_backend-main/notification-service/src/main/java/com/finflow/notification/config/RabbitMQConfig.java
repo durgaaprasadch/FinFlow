@@ -84,6 +84,7 @@ public class RabbitMQConfig {
          // Direct FQCN Mapping from other services (Fallback)
          idClassMapping.put("com.finflow.auth.dto.NotificationRequest", NotificationRequest.class);
          idClassMapping.put("com.finflow.application.dto.NotificationRequest", NotificationRequest.class);
+         idClassMapping.put("com.finflow.notification.dto.NotificationRequest", NotificationRequest.class);
          
          classMapper.setIdClassMapping(idClassMapping);
          converter.setClassMapper(classMapper);

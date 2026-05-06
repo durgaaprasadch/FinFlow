@@ -49,3 +49,4 @@ finflow_cover_illustration.png
 
 # SQL temp files
 *.sql.temp
+/.metadata/

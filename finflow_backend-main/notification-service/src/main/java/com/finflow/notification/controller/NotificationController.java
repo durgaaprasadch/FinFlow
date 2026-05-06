@@ -21,6 +21,7 @@ import java.util.Map;
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin("*")
 public class NotificationController {
 
     private final InAppNotificationStore store;
@@ -34,22 +35,13 @@ public class NotificationController {
         return ResponseEntity.ok(Map.of("status", "SENT"));
     }
 
-    /** GET /api/notifications — fetch all for the logged-in user */
-    @GetMapping
+    /** GET /api/notifications/all — fetch all for the logged-in user */
+    @GetMapping("/all")
     public ResponseEntity<List<InAppNotification>> getNotifications(HttpServletRequest request) {
         String email = resolveEmail(request);
         log.info("[NOTIF-API] Fetching notifications for email: '{}'", email);
         List<InAppNotification> list = store.get(email);
         
-        // Diagnostic: If empty, add a dummy to see if UI can at least talk to backend
-        if (list.isEmpty()) {
-            return ResponseEntity.ok(List.of(InAppNotification.create(
-                "system@finflow.in",
-                "System Update Check",
-                "Connection verified. Identity resolved as: '" + email + "'.",
-                "SYSTEM"
-            )));
-        }
         
         return ResponseEntity.ok(list);
     }

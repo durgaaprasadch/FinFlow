@@ -265,19 +265,19 @@ const Login = () => {
           <span className="eyebrow" style={{ color: 'var(--blue)', background: 'rgba(37, 99, 235, 0.1)', padding: '6px 12px', borderRadius: '4px' }}>
             <ShieldCheck size={15} /> SECURE COMMAND CENTER
           </span>
-          <h1 style={{ fontSize: '64px', fontWeight: 900, marginBottom: '32px', letterSpacing: '-0.04em' }}>Capital, minus the chaos.</h1>
+          <h1 className="hero-premium-lock">Capital, minus the chaos.</h1>
           <p style={{ fontSize: '22px', opacity: 0.8, lineHeight: 1.5, maxWidth: '540px' }}>
             Your bank moves in days. We move in minutes. Experience funding that finally keeps up with your ambition.
           </p>
 
           <div style={{ marginTop: '56px', display: 'grid', gap: '28px' }}>
-            <div style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '16px', color: 'white' }}>
               <Zap size={24} color="var(--blue)" /> Funding at the speed of thought.
             </div>
-            <div style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '16px', color: 'white' }}>
               <Star size={24} color="var(--blue)" /> The bank said maybe. We said yes.
             </div>
-            <div style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '16px', color: 'white' }}>
               <Shield size={24} color="var(--blue)" /> High-end finance. Zero headaches.
             </div>
           </div>

@@ -115,26 +115,46 @@ public class ApplicationEventPublisher {
 
     public void publishStatusUpdateNotification(LoanApplication application) {
         try {
+            String status = application.getStatus() != null ? application.getStatus().toString() : "UPDATED";
+            String subject = "FinFlow: Loan Application Update (" + status + ")";
+            
+            // Premium Subject lines
+            if ("APPROVED".equalsIgnoreCase(status)) subject = "CONGRATULATIONS: Your FinFlow Loan is Approved! 🎉";
+            else if ("REJECTED".equalsIgnoreCase(status)) subject = "FinFlow Application Status: Update on APP-" + application.getId();
+            else if ("REUPLOAD".equalsIgnoreCase(status)) subject = "ACTION REQUIRED: Document Re-upload for FinFlow Application";
+            else if ("SUBMITTED".equalsIgnoreCase(status)) subject = "FinFlow: Application Received (APP-" + application.getId() + ")";
+
             com.finflow.notification.dto.NotificationRequest notification = com.finflow.notification.dto.NotificationRequest
                     .builder()
                     .to(application.getApplicantUsername())
-                    .subject("FinFlow: Update on your Loan Application")
+                    .subject(subject)
+                    .templateName("loan-status-template")
                     .model(java.util.Map.of(
                             "name", application.getFullName() != null ? application.getFullName() : "Valued Customer",
                             "applicationId", "APP-" + application.getId(),
-                            "status", application.getStatus().toString(),
-                            "timestamp", java.time.LocalDateTime.now().toString()))
+                            "status", status,
+                            "message", "Your loan application status has been updated. Please log in to your dashboard for more details.",
+                            "timestamp", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))))
                     .build();
 
-            rabbitTemplate.convertAndSend(notificationExchange, loanStatusRoutingKey, notification);
+            publishStatusUpdateNotificationDirectly(notification);
             if (log.isInfoEnabled()) {
                 log.info("Published notification event for Application Status Change: {} -> {}", application.getId(),
-                        application.getStatus());
+                        status);
             }
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("Failed to publish status update notification for application {}", application.getId(), e);
             }
+        }
+    }
+
+    public void publishStatusUpdateNotificationDirectly(com.finflow.notification.dto.NotificationRequest request) {
+        try {
+            rabbitTemplate.convertAndSend(notificationExchange, loanStatusRoutingKey, request);
+            log.info("Directly published notification to user: {}", request.getTo());
+        } catch (Exception e) {
+            log.error("Failed to directly publish notification: {}", e.getMessage());
         }
     }
 }

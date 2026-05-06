@@ -7,6 +7,22 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * 🐇 RABBITMQ CONFIGURATION (APPLICATION SERVICE)
+ * 
+ * This class establishes the infrastructure for the 'Event-Driven' communication 
+ * pattern within the FinFlow ecosystem. 
+ * 
+ * CORE RESPONSIBILITIES:
+ * 1. 🧊 Message Serialization: Uses Jackson2Json to convert Java DTOs into 
+ *    interoperable JSON payloads for cross-service delivery.
+ * 2. 🏛️ Schema Mapping: Maps incoming/outgoing message types (e.g., 'DocumentMessage') 
+ *    to local DTO classes, ensuring polymorphic compatibility even if FQCNs differ.
+ * 3. 📉 Observation: Enables Spring Cloud Sleuth/Zipkin tracing for messages, 
+ *    allowing end-to-end latency visualization from publisher to consumer.
+ * 4. 🚀 Reliable Delivery: Configures the RabbitTemplate with optimized 
+ *    serialization for high-throughput transactional events.
+ */
 @Configuration
 @SuppressWarnings("null")
 public class RabbitMQConfig {

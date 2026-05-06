@@ -1,66 +1,341 @@
-.my-apps-page-premium {
-  padding: 10px;
+/* ============================================================
+   FinFlow My Applications — Premium Table UI
+   Matches the high-end zinc-950 enterprise design
+   ============================================================ */
+
+.ma-page {
+  padding: 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
-.header-actions {
+/* ── Header ──────────────────────────────────────────────── */
+.ma-header {
   display: flex;
-  gap: 1rem;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.ma-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ma-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ma-refresh-btn:hover {
+  background: var(--surface-2);
+  border-color: var(--blue);
+}
+
+.ma-refresh-btn .spin {
+  animation: ma-spin 1s linear infinite;
+}
+
+@keyframes ma-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Table Container ─────────────────────────────────────── */
+.ma-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 32px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+}
+
+.ma-panel-head {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
-.search-bar-premium {
+.ma-panel-title {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 1rem;
-  border-radius: 100px;
-  width: 250px;
+  flex-direction: column;
 }
 
-.search-bar-premium input {
-  background: transparent;
-  border: none;
-  color: var(--color-text);
-  font-size: 0.85rem;
-  font-weight: 500;
+.ma-panel-title h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.ma-panel-title p {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+/* ── Table UI ────────────────────────────────────────────── */
+.ma-table-wrap {
   width: 100%;
-  outline: none;
-}
-
-.table-card-premium {
-  padding: 0;
-  overflow: hidden;
-}
-
-.table-wrapper-premium {
   overflow-x: auto;
 }
 
-.amount-cell-premium {
+.ma-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ma-table th {
+  text-align: left;
+  padding: 16px;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--color-text);
-  font-family: var(--font-mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid var(--line);
 }
 
-.type-cell {
-  text-transform: capitalize;
+.ma-table td {
+  padding: 20px 16px;
+  font-size: 14px;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ma-row:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ma-row:hover td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.ma-row:hover td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.ma-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ma-icon-box {
+  width: 32px;
+  height: 32px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--blue);
+}
+
+.ma-status-pill {
+  display: inline-flex;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ma-status-pill.good {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.ma-status-pill.bad {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.ma-status-pill.warn {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.ma-status-pill.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.ma-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--blue);
+  font-size: 14px;
   font-weight: 600;
-  color: var(--color-text);
-  opacity: 0.8;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: color 0.2s;
 }
 
-.date-cell {
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
+.ma-action-btn:hover {
+  color: var(--ink);
 }
 
-@media (max-width: 768px) {
-  .header-actions {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
+.ma-management-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.ma-reupload-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 999px;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ma-reupload-btn:hover {
+  background: #ef4444 !important;
+  color: #fff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* ── Modal UI ────────────────────────────────────────────── */
+.ma-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ma-modal {
+  background: var(--surface);
+  width: min(640px, 95vw);
+  border-radius: 32px;
+  padding: 40px;
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+  position: relative;
+  animation: ma-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes ma-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
   }
-  .search-bar-premium {
-    width: 100%;
+
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
+}
+
+.ma-modal-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.ma-modal-head h3 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.ma-modal-head p {
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+.ma-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 32px;
+}
+
+.ma-modal-stat {
+  background: var(--surface-2);
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+}
+
+.ma-modal-stat label {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.ma-modal-stat strong {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.ma-modal-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.ma-modal-btn {
+  flex: 1;
+  padding: 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.ma-modal-btn.primary {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+}
+
+.ma-modal-btn.secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
 }

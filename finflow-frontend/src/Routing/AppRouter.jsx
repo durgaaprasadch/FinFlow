@@ -78,7 +78,6 @@ const AppRouter = () => {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="applications" element={<AdminDashboard />} />
         <Route path="users" element={<AdminDashboard />} />
-        <Route path="fraud-detection" element={<AdminDashboard />} />
         <Route path="analytics" element={<AdminDashboard />} />
         <Route path="settings" element={<ProfileSettings />} />
         <Route path="notifications" element={<Notifications />} />

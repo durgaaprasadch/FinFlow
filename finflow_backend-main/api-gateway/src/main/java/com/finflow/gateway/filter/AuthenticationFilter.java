@@ -12,6 +12,23 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Mono;
 
+/**
+ * 🔐 AUTHENTICATION FILTER (API GATEWAY)
+ * 
+ * This is the primary security gatekeeper for the FinFlow ecosystem.
+ * It operates at the edge of the microservice mesh, ensuring that every 
+ * incoming request is authenticated and authorized before it touches 
+ * downstream services.
+ * 
+ * CORE RESPONSIBILITIES:
+ * 1. 🛡️ Perimeter Defense: Validates JWT Bearer tokens against the Auth Service's utility layer.
+ * 2. 🚦 Route Governance: Differentiates between public (white-listed) and secured endpoints.
+ * 3. 🎭 Identity Propagation: Extracts user metadata (ID, Role, Username) and injects them 
+ *    into custom headers (X-User-Role, X-Applicant-Id) for microservice awareness.
+ * 4. ⚖️ RBAC Enforcement: Dynamically restricts administrative paths (/api/admin/**) 
+ *    to users with the 'ADMIN' claim.
+ * 5. 🛑 Unified Error Handling: Generates standardized JSON error responses for security violations.
+ */
 @Component
 @Slf4j
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
