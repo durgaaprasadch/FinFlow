@@ -1,11 +1,11 @@
 # 📊 FinFlow Design Diagrams
 
-This document contains the core structural and behavioral diagrams for the FinFlow Loan Management System.
+This document contains the structural and behavioral design diagrams for the FinFlow Loan Management System, illustrating both high-level architecture and detailed sequence flows.
 
 ---
 
 ## 1. Use Case Diagram
-Illustrates the interactions between the primary users (Applicant and Underwriter/Admin) and the core capabilities of the system.
+Illustrates the interactions between the actors (Applicant, Underwriter/Admin) and the boundaries of the system.
 
 ```mermaid
 graph TD
@@ -19,8 +19,9 @@ graph TD
         UC_Submit(Submit Loan Application)
         UC_Upload(Upload KYC Documents)
         UC_Track(Track Application Status)
-        UC_Review(Review Application Dossier)
+        UC_Review(Review Applications)
         UC_Decision(Approve / Reject Loan)
+        UC_Hold(Place / Release Holds)
     end
 
     A --> UC_Auth
@@ -31,19 +32,20 @@ graph TD
     AD --> UC_Auth
     AD --> UC_Review
     AD --> UC_Decision
+    AD --> UC_Hold
 ```
 
 ---
 
-## 2. System Architecture Diagram
-Shows the microservices layout, edge gateway routing, discovery registry, messaging queue, and isolated databases.
+## 2. Microservices Architecture
+Shows the service layout, gateway routing, Eureka registry, Config server, RabbitMQ message broker, and databases.
 
 ```mermaid
 graph TD
     Client[React Frontend] -->|REST| Gateway[API Gateway :8080]
     
     subgraph "Service Infrastructure"
-        Eureka[Eureka Server :8761]
+        Eureka[Eureka Registry :8761]
         Config[Config Server :8889]
     end
     
@@ -54,12 +56,13 @@ graph TD
         Gateway --> Doc[Document Service :8084]
     end
     
-    subgraph "Messaging & Alerts"
-        App --> Rabbit[RabbitMQ]
+    subgraph "Messaging Layer"
+        App --> Rabbit[RabbitMQ Broker]
+        Admin --> Rabbit
         Rabbit --> Notif[Notification Service :8085]
     end
     
-    subgraph "Databases"
+    subgraph "Persistence"
         Auth --- AuthDB[(MySQL + Redis)]
         App --- AppDB[(MySQL)]
         Admin --- AdminDB[(MySQL)]
@@ -72,8 +75,8 @@ graph TD
 
 ---
 
-## 3. Database ERD (Logical)
-FinFlow uses a **Database-per-Service** pattern. Each service owns its database, and links are managed logically in the code using reference IDs.
+## 3. Database ERD (Logical Schema)
+FinFlow follows a **Database-per-Service** model. Relationships across services are mapped logically via reference IDs.
 
 ```mermaid
 erDiagram
@@ -87,10 +90,17 @@ erDiagram
     LOAN_APPLICATION {
         Long id PK
         Long applicantId FK "Logical reference to USER"
-        String status
+        String status "DRAFT, SUBMITTED, APPROVED, REJECTED, HOLD"
         Double requestedAmount
         String purpose
         DateTime submittedAt
+    }
+
+    EMPLOYMENT_DETAILS {
+        Long id PK
+        Long applicationId FK
+        String employerName
+        Double monthlyIncome
     }
 
     LOAN_DOCUMENT {
@@ -105,27 +115,76 @@ erDiagram
         Long applicationId FK "Logical reference to LOAN_APPLICATION"
         String decision "APPROVED, REJECTED"
         String remarks
+        DateTime auditedAt
     }
 
     USER ||--o{ LOAN_APPLICATION : "submits"
+    LOAN_APPLICATION ||--|| EMPLOYMENT_DETAILS : "requires"
     LOAN_APPLICATION ||--o{ LOAN_DOCUMENT : "contains"
     LOAN_APPLICATION ||--o{ UNDERWRITING_AUDIT : "reviewed_by"
 ```
 
 ---
 
-## 4. Loan Application State Machine
-Represents the strict lifecycle transitions that a loan application undergoes from creation to decision.
+## 4. End-to-End Loan Flow (Sequence Diagram)
+Details the step-by-step HTTP requests, routing, event publishing, and DB logs when an applicant submits a loan and an admin decisions it.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Applicant as Applicant
+    participant UI as React UI
+    participant GW as API Gateway
+    participant Auth as Auth Service
+    participant App as Application Service
+    participant Doc as Document Service
+    participant Rabbit as RabbitMQ
+    participant Notif as Notification Service
+
+    %% Create Draft & Upload
+    Applicant->>UI: Fills Wizard Step 1
+    UI->>GW: POST /api/applications (Draft)
+    GW->>App: Route to /applications
+    App->>App: Save Application Draft
+    App-->>UI: Return Draft ID (101)
+
+    %% Document Upload
+    Applicant->>UI: Uploads KYC Files
+    UI->>GW: POST /api/documents/upload-all
+    GW->>Doc: Route to /documents
+    Doc->>App: REST call to verify owner
+    App-->>Doc: Owner verified
+    Doc->>Doc: Save file BLOBs in DB
+    Doc-->>UI: Upload successful
+
+    %% Submission
+    Applicant->>UI: Submits Application
+    UI->>GW: PATCH /api/applications/submit
+    GW->>App: Route to /applications/submit
+    App->>App: Change state to SUBMITTED
+    App->>Rabbit: Publish event (loan.submitted)
+    App-->>UI: Submission confirmed
+    
+    %% Async Notification
+    Rabbit->>Notif: Deliver event
+    Notif->>Notif: Render email template
+    Notif->>Applicant: Send confirmation email
+```
+
+---
+
+## 5. Loan Application State Machine
+Represents the allowed transitions of a loan application status.
 
 ```mermaid
 stateDiagram-v2
     [*] --> DRAFT : Create Application
-    DRAFT --> SUBMITTED : Submit
-    SUBMITTED --> UNDER_REVIEW : Open for Review
-    UNDER_REVIEW --> HOLD : Request re-upload
-    HOLD --> UNDER_REVIEW : Re-uploaded
-    UNDER_REVIEW --> APPROVED : Approved
-    UNDER_REVIEW --> REJECTED : Rejected
+    DRAFT --> SUBMITTED : Submit Application
+    SUBMITTED --> UNDER_REVIEW : Open for Underwriting
+    UNDER_REVIEW --> HOLD : Request document re-upload
+    HOLD --> UNDER_REVIEW : Re-upload completed
+    UNDER_REVIEW --> APPROVED : Credit check & audit pass
+    UNDER_REVIEW --> REJECTED : Risk check failed
     APPROVED --> [*]
     REJECTED --> [*]
 ```
