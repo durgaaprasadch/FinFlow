@@ -1,83 +1,310 @@
-# 🎓 FinFlow Technical Masterclass: The Complete Explanation
+# 🎓 FinFlow Technical Masterclass: Architectural Breakdown
 
-This document is your "Deep Dive" into every line of code and architectural decision in the FinFlow ecosystem. Use this to understand the **How** and the **Why** of your project.
-
----
-
-## 🏗️ PART 1: THE BACKEND (Spring Boot Microservices)
-
-Our backend is built using a **Distributed Microservices Architecture**. This means instead of one giant application, we have several small, specialized services.
-
-### **1. API Gateway (The Entry Point)**
-- **What it is:** The single entry point for all frontend requests.
-- **Why we have it:** To centralize security. We don't want every microservice to have to handle authentication.
-- **Key Logic:** It uses an `AuthenticationFilter` that intercepts every request, validates the JWT with the Auth service, and then forwards the request with user headers (`userRole`, `applicantId`).
-
-### **2. Auth Service (Identity Provider)**
-- **Responsibility:** User registration, Login, and JWT generation.
-- **The Flow:** When you log in, it checks the MySQL database, verifies the hashed password with BCrypt, and uses a Secret Key to sign a JWT.
-- **Tech Highlights:** Uses `Spring Security` and `io.jsonwebtoken` for secure token management.
-
-### **3. Application Service (The Business Brain)**
-- **Responsibility:** Managing the life of a loan application.
-- **The Flow:** It handles the transition from `DRAFT` ➔ `SUBMITTED` ➔ `REVIEW`. 
-- **Tech Highlights:** Uses **State-Machine Logic** to ensure an application can't jump from `DRAFT` to `APPROVED` without going through `REVIEW`.
-
-### **4. Document Service (Secure Storage)**
-- **Responsibility:** Linking physical files (PDFs) to loan applications.
-- **Why it's separate:** File handling is heavy. By making it a separate service, it doesn't slow down the main application logic.
-- **The Flow:** It stores file metadata in MySQL and provides secure download links only to authorized Admins.
-
-### **5. Notification Service (Asynchronous Messenger)**
-- **Responsibility:** Sending Emails and In-app alerts.
-- **Why it's separate:** Sending an email can take seconds. If we did it in the main flow, the user would wait forever. 
-- **The Flow:** It "listens" to a RabbitMQ queue. When a loan is submitted, a message drops into the queue, and this service picks it up and sends the email in the background.
+This document provides a comprehensive technical walkthrough of the design patterns, code structures, and microservice communications implemented within the FinFlow ecosystem.
 
 ---
 
-## 🎨 PART 2: THE FRONTEND (React 19 & Redux)
+## 🏗️ Part 1: Gateway Routing & Security Context Propagation
 
-Our frontend is a **Single Page Application (SPA)** designed for speed and a premium feel.
+### 1. Edge Security Filter (API Gateway)
+The `API Gateway` acts as a reverse proxy, checking and validating stateless JWT authorization credentials at the boundary. It intercepts incoming HTTP requests, validates the signature, extracts the user's role and identity claims, and forwards them as downstream request headers. This decouples individual microservices from identity verification.
 
-### **1. State Management (The Brain)**
-- **Redux Toolkit:** We use "Slices" to manage data.
-    - `authSlice`: Remembers if you're logged in and what your role is.
-    - `applicationSlice`: Remembers what step of the 5-step wizard you are on.
-- **Persistence:** We use `localStorage` so that if you refresh the page, you don't get logged out.
+**Downstream Header Propagation Logic (Conceptual):**
+```java
+// Located in: api-gateway/src/main/java/com/finflow/gateway/filter/AuthenticationFilter.java
+@Component
+public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
 
-### **2. Component Architecture (The LEGO Blocks)**
-- **Pages:** Large components like `Dashboard.jsx`, `AdminDashboard.jsx`, and `LoanApplication.jsx`.
-- **Reusable Components:** Small parts like `Sidebar.jsx`, `NotificationDropdown.jsx`, and `ApplicationTimeline.jsx`.
-- **Styling:** We use **Vanilla CSS** with CSS Variables (e.g., `--blue`, `--surface`). This makes it easy to change the "Theme" of the entire app in one click.
+    @Autowired
+    private JwtUtil jwtUtil;
 
-### **3. The API Layer (The Communication)**
-- **Axios:** We use a centralized instance in `src/api/index.js`.
-- **Interceptors (The Magic):**
-    - **Request Interceptor:** Automatically adds the `Bearer <token>` to every request header.
-    - **Response Interceptor:** If the backend says "Token Expired", it automatically tries to refresh the token and retries the request without the user knowing.
+    @Override
+    public GatewayFilter apply(Config config) {
+        return (exchange, chain) -> {
+            ServerHttpRequest request = exchange.getRequest();
+
+            if (isSecured(request)) {
+                if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing Auth Header");
+                }
+
+                String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    authHeader = authHeader.substring(7);
+                }
+
+                try {
+                    // Validate JWT and extract claims
+                    jwtUtil.validateToken(authHeader);
+                    String role = jwtUtil.getClaim(authHeader, "role");
+                    String userId = jwtUtil.getClaim(authHeader, "userId");
+
+                    // Mutate request headers to propagate user context downstream
+                    ServerHttpRequest mutatedRequest = request.mutate()
+                        .header("userRole", role)
+                        .header("applicantId", userId)
+                        .header("loggedInUser", jwtUtil.getSubject(authHeader))
+                        .build();
+
+                    return chain.filter(exchange.mutate().request(mutatedRequest).build());
+                } catch (Exception e) {
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Token credentials");
+                }
+            }
+            return chain.filter(exchange);
+        };
+    }
+}
+```
 
 ---
 
-## ⚡ PART 3: CROSS-CUTTING CONCERNS
+## 🛡️ Part 2: Unified Resilience & Exception Governance
 
-### **1. Messaging (RabbitMQ)**
-- **Exchange/Queue:** We use a `Topic Exchange`.
-- **Interconnection:** Services publish "Events" (e.g., `LOAN_SUBMITTED`). This makes the system "Reactive"—one change in the App service triggers a reaction in the Notification service automatically.
+### 1. Global Exception Handlers (`@RestControllerAdvice`)
+To satisfy the requirement of consistent API error payloads and avoid leaking raw Java stack traces, each microservice implements a centralized exception handler using `@RestControllerAdvice`.
 
-### **2. Persistence (Database Logic)**
-- **MySQL:** Stores permanent records.
-- **Redis:** Stores temporary data like OTPs (which expire in 5 minutes) and Session Cache.
-- **Database-per-Service:** Each service has its own DB schema. This prevents "Spaghetti Data" where one service breaks another's tables.
+**Unified Error Response Class:**
+```java
+@Data
+@AllArgsConstructor
+public class ErrorResponse {
+    private int status;
+    private String message;
+    private String errorCode;
+    private LocalDateTime timestamp;
+}
+```
 
-### **3. Security (JWT)**
-- **Statelessness:** The server doesn't remember you. Every time you make a request, you send your "ID Card" (JWT). 
-- **Encryption:** We use **BCrypt** for passwords and **HS256** for token signatures.
+**Global Exception Handler Controller:**
+```java
+// Located in: auth-service/src/main/java/com/finflow/auth/exception/GlobalExceptionHandler.java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ErrorResponse> handleAuthException(AuthException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.UNAUTHORIZED.value(),
+            ex.getMessage(),
+            "AUTH_ERROR_01",
+            LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
+        String errorMsg = ex.getBindingResult().getFieldErrors().stream()
+            .map(FieldError::getDefaultMessage)
+            .collect(Collectors.joining(", "));
+            
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            "Validation Failed: " + errorMsg,
+            "VALIDATION_ERROR",
+            LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            "An unexpected system error occurred. Please contact admin.",
+            "GENERIC_SYSTEM_ERROR",
+            LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+```
+
+### 2. Resilience4j Circuit Breaker (Admin Service)
+To prevent cascading failures across microservices, the `admin-service` utilizes a Resilience4j Circuit Breaker when invoking the `application-service` via a Feign Client. If the target service fails or times out, requests are short-circuited and routed to a fallback method.
+
+**Feign Client Integration:**
+```java
+// Located in: admin-service/src/main/java/com/finflow/admin/service/AdminService.java
+@Service
+public class AdminService {
+
+    @Autowired
+    private ApplicationServiceClient appClient;
+
+    @CircuitBreaker(name = "applicationService", fallbackMethod = "getApplicationFallback")
+    public ApplicationSummaryDTO getApplicationDetails(Long id) {
+        return appClient.getApplicationById(id);
+    }
+
+    // Fallback response invoked when the circuit is OPEN or application-service is down
+    public ApplicationSummaryDTO getApplicationFallback(Long id, Throwable throwable) {
+        ApplicationSummaryDTO fallbackDto = new ApplicationSummaryDTO();
+        fallbackDto.setId(id);
+        fallbackDto.setStatus("SERVICE_UNAVAILABLE");
+        fallbackDto.setRemarks("Application service is currently down. Fallback details provided.");
+        return fallbackDto;
+    }
+}
+```
 
 ---
 
-## 🚀 SUMMARY FOR THE VIVA
+## ✉️ Part 3: Asynchronous Event-Driven Messaging (RabbitMQ)
 
-If asked **"How does your system work?"**, answer like this:
-> "FinFlow is a microservices ecosystem where the **API Gateway** acts as the secure entry point. Users authenticate via the **Auth Service** to get a JWT, which allows them to interact with the **Application Service** to manage loans. We use **RabbitMQ** for asynchronous notifications to keep the UI fast, and we use **React with Redux** to provide a seamless, real-time experience for both applicants and bank administrators."
+To avoid blocking web threads with long-running tasks like sending SMTP emails, FinFlow uses an asynchronous messaging pipeline with RabbitMQ.
 
-**This is the complete technical DNA of your project.** Use it wisely!
+```
+[Application/Auth Service] ---> (Publish JSON) ---> [RabbitMQ Exchange]
+                                                           │
+                                                           ▼
+[Notification Service] <--- (Consume Event) <--- [RabbitMQ Queue]
+```
+
+### 1. Publishing Events (Application Service)
+```java
+// Located in: application-service/src/main/java/com/finflow/application/messaging/EventPublisher.java
+@Component
+public class EventPublisher {
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @Value("${spring.rabbitmq.exchange.notification}")
+    private String exchange;
+
+    @Value("${spring.rabbitmq.routing-keys.loan-status}")
+    private String routingKey;
+
+    public void publishLoanStatusEvent(LoanStatusMessage message) {
+        // Automatically serializes object to JSON using Jackson2JsonMessageConverter
+        rabbitTemplate.convertAndSend(exchange, routingKey, message);
+    }
+}
+```
+
+### 2. Consuming Events & Dispatching Email (Notification Service)
+```java
+// Located in: notification-service/src/main/java/com/finflow/notification/listener/NotificationListener.java
+@Component
+public class NotificationListener {
+
+    @Autowired
+    private EmailService emailService;
+
+    @RabbitListener(queues = "${spring.rabbitmq.notification.queues.loan-status}")
+    public void handleLoanStatusEvent(LoanStatusMessage message) {
+        try {
+            emailService.sendEmail(
+                message.getRecipientEmail(),
+                "FinFlow Loan Status Update - " + message.getApplicationId(),
+                "loan-status-template",
+                Map.of(
+                    "name", message.getRecipientName(),
+                    "status", message.getStatus(),
+                    "amount", message.getAmount().toString()
+                )
+            );
+        } catch (Exception e) {
+            log.error("Failed to process email delivery task: ", e);
+        }
+    }
+}
+```
+
+---
+
+## 🎨 Part 4: Frontend Token Synchronization (Axios Interceptors)
+
+Stateless JWT authentication requires token management in the client app. To ensure seamless session continuation, the React application uses an Axios response interceptor that automatically refreshes expired access tokens. It synchronizes multiple simultaneous requests during the refresh window to avoid logging the user out.
+
+```javascript
+// Located in: finflow-frontend/src/api/index.js
+import axios from 'axios';
+
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) prom.reject(error);
+    else prom.resolve(token);
+  });
+  failedQueue = [];
+};
+
+const client = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api',
+  timeout: 10000,
+});
+
+// Response Interceptor: Catches 401 Unauthorized errors
+client.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Queue subsequent requests while refresh is in progress
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return client(originalRequest);
+        }).catch(err => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem('finflow_refresh_token');
+      if (!refreshToken) {
+        isRefreshing = false;
+        localStorage.clear();
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+
+      try {
+        // Call backend token exchange endpoint
+        const res = await axios.post(`${client.defaults.baseURL}/auth/refresh`, { refreshToken });
+        if (res.status === 200) {
+          const newToken = res.data.accessToken;
+          localStorage.setItem('finflow_token', newToken);
+          client.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+          
+          processQueue(null, newToken); // Resolve queued requests
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return client(originalRequest); // Retry original request
+        }
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        localStorage.clear();
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default client;
+```
+
+---
+
+## 💡 Summary Cheat Sheet for Project Evaluation
+
+If asked about the **Enterprise Design Patterns** in your project:
+- **Core Microservices Architecture**: Decoupled, single-responsibility services. Independent scalability and fault boundaries.
+- **Service Discovery**: Eureka allows dynamic service routing, eliminating hardcoded host names.
+- **Configuration Server**: Configurations are managed outside code and loaded dynamically at boot time.
+- **Circuit Breaker Pattern**: Isolates service failures and provides functional fallbacks.
+- **Database-per-Service**: Strong data isolation. Relational dependencies are mapped logically using ID-referencing instead of schema constraints.
+- **Asynchronous Messaging Broker**: RabbitMQ processes non-blocking long-running tasks.
+- **Stateless Authentication**: Gateway manages token validation, downstream services consume stateless identity headers.
+- **Global Error Interception**: Centralized `@RestControllerAdvice` maps exceptions to clean, structured error responses.
