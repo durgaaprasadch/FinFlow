@@ -77,9 +77,6 @@ const Signup = () => {
             <div style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '16px' }}>
               <Star size={24} color="var(--blue)" /> Priority file processing.
             </div>
-            <div style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <Shield size={24} color="var(--blue)" /> Bank-grade security vault.
-            </div>
           </div>
         </div>
       </aside>

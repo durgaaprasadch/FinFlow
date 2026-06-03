@@ -1,10 +1,6 @@
 import axios from 'axios';
 
-/**
- * Global API Queue:
- * Handles multiple concurrent requests failing due to an expired token.
- * Prevents "Race Conditions" where multiple refresh calls are made simultaneously.
- */
+// Global API Queue for token refresh synchronization
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -24,18 +20,16 @@ const client = axios.create({
   },
 });
 
-/**
- * REQUEST INTERCEPTOR:
- * 1. Attaches the JWT Bearer token from localStorage.
- * 2. Injects contextual headers (Role, ApplicantID) for microservice awareness.
- * 3. Adds an Idempotency-Key for POST/PATCH/DELETE to prevent duplicate operations.
- */
+// Request Interceptor: Attaches auth tokens and custom headers
 client.interceptors.request.use(
   (config) => {
+    // 1. Grab the token from storage and slap it onto the Authorization header.
     const token = localStorage.getItem('finflow_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Inject custom headers for microservice identity context
     const role = localStorage.getItem('finflow_role');
     const applicantId = localStorage.getItem('finflow_applicantId') || localStorage.getItem('finflow_userId');
     const loggedInUser = localStorage.getItem('finflow_user');
@@ -43,7 +37,7 @@ client.interceptors.request.use(
     if (applicantId) config.headers.applicantId = applicantId;
     if (loggedInUser) config.headers.loggedInUser = loggedInUser;
 
-    // Add Idempotency-Key for mutations (POST, PATCH, DELETE)
+    // Idempotency Check for state-mutating requests
     if (['post', 'patch', 'delete'].includes(config.method?.toLowerCase())) {
       config.headers['Idempotency-Key'] = crypto.randomUUID();
     }
@@ -53,37 +47,32 @@ client.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-/**
- * RESPONSE INTERCEPTOR:
- * 1. Catches 401 Unauthorized errors (Expired Tokens).
- * 2. Pauses failed requests and triggers a /auth/refresh call.
- * 3. Silently retries original requests once a new token is obtained.
- */
+// Response Interceptor: Handles global errors and silent token refresh
 client.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.error(`[API ERROR] ${error.config?.method?.toUpperCase()} ${error.config?.url}:`, {
-      status: error.response?.status,
-      data: error.response?.data,
-      headers: error.response?.headers
-    });
     const originalRequest = error.config;
 
-    // Handle 401 Unauthorized (Token Expiration)
+    // If we get a 401 (Unauthorized), it almost always means the token expired.
     if (error.response?.status === 401 && !originalRequest._retry) {
+      
+      // Handle concurrent refresh requests by queuing them
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then(token => {
           originalRequest.headers.Authorization = `Bearer ${token}`;
           return client(originalRequest);
-        }).catch(err => Promise.reject(err));
+        }).catch(err => Promise.reject(err)); //7019742115 
       }
 
+      // Mark this request so we don't get into an infinite loop of 401s.
       originalRequest._retry = true;
       isRefreshing = true;
 
       const refreshToken = localStorage.getItem('finflow_refresh_token');
+      
+      // If no refresh token exists, we're doomed. Log them out.
       if (!refreshToken) {
         isRefreshing = false;
         localStorage.clear();
@@ -92,16 +81,23 @@ client.interceptors.response.use(
       }
 
       try {
+        // Call the backend to swap the expired refresh token for a fresh access token.
         const res = await axios.post(`${client.defaults.baseURL}/auth/refresh`, { refreshToken });
         if (res.status === 200) {
-          // Fixed: res.data is the ApiResponse, so accessToken is in res.data.data
           const newToken = res.data.data?.accessToken || res.data.accessToken;
           localStorage.setItem('finflow_token', newToken);
+          
+          // Update the global client so all future calls use the new token.
           client.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+          
+          // Resume all the "paused" requests in the queue.
           processQueue(null, newToken);
+          
+          // Retry the original request that failed initially.
           return client(originalRequest);
         }
       } catch (refreshError) {
+        // If even the refresh fails, the user's session is truly dead.
         processQueue(refreshError, null);
         localStorage.clear();
         window.location.href = '/login';
@@ -115,8 +111,7 @@ client.interceptors.response.use(
   }
 );
 
-// Domain-Driven Service Abstraction
-// Matches exact FinFlow backend endpoints
+// Domain Services
 
 export const authService = {
   // Auth endpoints (public - no auth filter in gateway)

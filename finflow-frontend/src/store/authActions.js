@@ -3,13 +3,7 @@ import { authService } from '../api';
 import { jwtDecode } from 'jwt-decode';
 import { formatError } from '../utils/format';
 
-/**
- * LOGIN USER THUNK:
- * Handles the primary authentication lifecycle.
- * 1. Calls Auth microservice.
- * 2. Decodes JWT to extract Role and Identity.
- * 3. Synchronizes Redux State with Browser LocalStorage for session persistence.
- */
+// Login Thunk: Handles auth lifecycle and session persistence
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
@@ -24,13 +18,13 @@ export const loginUser = createAsyncThunk(
       
       if (accessToken && !mfaRequired) {
         try {
-          // Decode JWT to extract roles and unique IDs (ApplicantID / UserID)
+          // Decode JWT for roles and identity context
           const decoded = jwtDecode(accessToken);
           role = (decoded.role || decoded.userRole || 'APPLICANT').replace(/^ROLE_/, '');
           applicantId = decoded.applicantId || decoded.sub;
           userId = decoded.userId || decoded.id;
         } catch {
-          // Fallback to raw data if decoding fails
+          // Role fallback
           role = (data.role || 'APPLICANT').replace(/^ROLE_/, '');
         }
         

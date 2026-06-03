@@ -202,12 +202,10 @@ const MyApplications = () => {
                   <button className="ma-modal-btn primary" style={{ background: '#ef4444' }} onClick={() => navigate('/applicant/documents')}>
                     <Upload size={16} /> Re-upload Now
                   </button>
-                ) : ['DRAFT', 'SUBMITTED', 'DOCS_VERIFIED'].includes(selectedApp.status) ? (
+                ) : (['DRAFT', 'SUBMITTED', 'DOCS_VERIFIED'].includes(selectedApp.status)) && (
                   <button className="ma-modal-btn primary" style={{ background: '#ef4444' }} onClick={() => handleDelete(selectedApp.applicationId || selectedApp.id)}>
                     Withdraw Application
                   </button>
-                ) : (
-                  <button className="ma-modal-btn primary">Download Sanction Letter</button>
                 )}
               </div>
             </motion.div>

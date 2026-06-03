@@ -10,11 +10,7 @@ import {
   resendSignupOtp
 } from './authActions';
 
-/**
- * AUTH STATE INITIALIZATION:
- * Loads persistent session data from localStorage on application startup.
- * Role normalization (removing 'ROLE_') ensures consistent internal permissions handling.
- */
+// Initial state with persistent session recovery
 const initialState = {
   user: localStorage.getItem('finflow_user') || null,
   token: localStorage.getItem('finflow_token') || null,
@@ -70,12 +66,7 @@ const authSlice = createSlice({
     };
 
     builder
-      /**
-       * AUTHENTICATION REDUCERS:
-       * Handles asynchronous authentication transitions. 
-       * All state mutations are centralized here to maintain a single source of truth 
-       * regarding user identity and MFA status.
-       */
+      // Async Auth Reducers
       // Login flow
       .addCase(loginUser.pending, handlePending)
       .addCase(loginUser.fulfilled, (state, action) => {

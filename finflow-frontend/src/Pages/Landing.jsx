@@ -92,16 +92,21 @@ const FAQItem = ({ question, answer }) => {
 
 const Landing = () => {
   const navigate = useNavigate();
+
   const { isAuthenticated, userRole } = useAuth();
+
+  // Loan calculator state
   const [amount, setAmount] = useState(250000);
   const [months, setMonths] = useState(36);
   const [loanType, setLoanType] = useState('Education Loan');
 
+  // Theme state initialization
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('finflow_theme') || 'dark';
     return saved === 'dark';
   });
 
+  // Theme toggle logic
   const toggleTheme = () => {
     const next = isDarkMode ? 'light' : 'dark';
     setIsDarkMode(!isDarkMode);
@@ -109,16 +114,21 @@ const Landing = () => {
     document.documentElement.setAttribute('data-theme', next);
   };
 
+  // User role path resolution
   const dashboardPath = (userRole === 'ADMIN' || userRole === 'ROLE_ADMIN') ? '/admin/dashboard' : '/applicant/dashboard';
   const applyPath = isAuthenticated ? '/applicant/apply' : '/signup';
 
+  // EMI Calculation logic
   const emi = useMemo(() => {
     const annualRate = LOAN_DATA[loanType]?.rate || 0.11;
     const monthlyRate = annualRate / 12;
     const compound = (1 + monthlyRate) ** months;
+    
+    // Standard EMI formula: [P x R x (1+R)^N]/[(1+R)^N-1]
     return Math.round((amount * monthlyRate * compound) / (compound - 1));
   }, [amount, months, loanType]);
 
+  // Application redirect logic
   const handleApply = () => {
     navigate(applyPath, {
       state: {
@@ -140,7 +150,9 @@ const Landing = () => {
               <h1 className="l-brand-text">FinFlow</h1>
             </Link>
           </div>
+          
 
+          
           <div className="l-nav-links">
             <a href="#cash">The Cash</a>
             <a href="#path">The Path</a>

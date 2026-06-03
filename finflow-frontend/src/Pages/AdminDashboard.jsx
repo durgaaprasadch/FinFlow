@@ -12,11 +12,7 @@ import ApplicationTimeline from '../Components/ApplicationTimeline';
 import AdminAnalytics from '../Components/AdminAnalytics';
 import './AdminDashboard.css';
 
-/**
- * TAB RESOLVER:
- * Extracts the current view from the URL path.
- * Used for role-based navigation and conditional rendering.
- */
+// Tab path resolver logic
 const tabFromPath = (pathname) => pathname.split('/').filter(Boolean).at(-1) || 'dashboard';
 
 const STATUS_LABELS = {
@@ -50,10 +46,7 @@ const AdminDashboard = () => {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedModules, setSelectedModules] = useState([]);
 
-  /**
-   * APPLICATION MASTER LOADER:
-   * Fetches all submitted loan files from the internal queue.
-   */
+  // Application master data loader
   const loadApps = async () => {
     setLoading(true);
     setError('');
@@ -67,6 +60,8 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
+  
 
   const handleReview = async (app) => {
     setSelected(app);

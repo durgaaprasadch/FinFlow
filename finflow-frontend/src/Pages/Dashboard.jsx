@@ -428,11 +428,6 @@ const Dashboard = () => {
                     <ArrowRight size={16} /> Manage application
                   </button>
                 )}
-                {currentStatus === 'APPROVED' && (
-                  <button className="df-btn df-btn--outline" onClick={() => alert('Sanction letter download would open here.')}>
-                    <Download size={16} /> Sanction letter
-                  </button>
-                )}
               </div>
             </motion.div>
 
@@ -467,11 +462,6 @@ const Dashboard = () => {
             </motion.div>
 
             {/* Trust Bar */}
-            <div className="df-trust">
-              <span><Shield size={12} /> Bank-grade security</span>
-              <span><Lock size={12} /> 256-bit encryption</span>
-              <span><BadgeCheck size={12} /> RBI compliant</span>
-            </div>
           </aside>
         </div>
 

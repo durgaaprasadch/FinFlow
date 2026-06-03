@@ -2,14 +2,21 @@
 finflow-frontend/node_modules/
 finflow-frontend/dist/
 finflow-frontend/.env
+finflow-frontend/.env.*
 
 # Backend dependencies
-finflow_backend-main/**/target/
-finflow_backend-main/**/.mvn/
-finflow_backend-main/**/mvnw
-finflow_backend-main/**/mvnw.cmd
-finflow_backend-main/**/.idea/
-finflow_backend-main/**/*.class
+finflow-backend/**/target/
+finflow-backend/**/.mvn/
+finflow-backend/**/mvnw
+finflow-backend/**/mvnw.cmd
+finflow-backend/**/.idea/
+finflow-backend/**/*.class
+finflow-backend/**/.settings/
+finflow-backend/**/.project
+finflow-backend/**/.classpath
+finflow-backend/**/.factorypath
+finflow-backend/new/
+finflow-backend/scratch/
 
 # IDE and System files
 .vscode/
@@ -19,3 +26,14 @@ finflow_backend-main/**/*.class
 *.zip
 .DS_Store
 Thumbs.db
+/.metadata/
+
+# Root PPTX generator tool files (unneeded in repository)
+node_modules/
+package-lock.json
+package.json
+presentation-output/
+presentation-output-best/
+tools/
+*.pptx
+index.html

@@ -25,10 +25,7 @@ import AdminDashboard from '../Pages/AdminDashboard';
 import DashboardLayout from '../Layouts/DashboardLayout';
 import ProtectedRoute from '../Components/ProtectedRoute';
 
-/**
- * AppRouter — Central routing for FinFlow.
- * Handles public, applicant-protected, and admin routes.
- */
+// Central routing for FinFlow
 const AppRouter = () => {
   return (
     <Routes>
@@ -40,10 +37,7 @@ const AppRouter = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
 
-      {/* 
-          ========== APPLICANT PROTECTED ROUTES ========== 
-          Requires 'APPLICANT' role. Uses DashboardLayout for consistent sidebar.
-      */}
+      {/* APPLICANT ROUTES */}
       <Route
         path="/applicant"
         element={
@@ -63,10 +57,7 @@ const AppRouter = () => {
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 
-      {/* 
-          ========== ADMIN PROTECTED ROUTES ========== 
-          Requires 'ADMIN' role. Restricted to internal management.
-      */}
+      {/* ADMIN ROUTES */}
       <Route 
         path="/admin" 
         element={
